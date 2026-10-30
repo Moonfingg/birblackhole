@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Bienvenue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Exo+2:wght@200;300;400;600&family=Noto+Serif:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#000;overflow:hidden;color:#fff;font-family:'Exo 2','Noto Serif',system-ui,sans-serif;touch-action:manipulation;overscroll-behavior:none}
+#stage{position:fixed;inset:0;will-change:transform}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#fx,#rg{pointer-events:none}
+#fb{position:absolute;left:50%;top:50%;width:46vmin;height:46vmin;margin:-23vmin 0 0 -23vmin;border-radius:50%;display:none;
+  background:radial-gradient(circle,#000 0 24%,#ffd9a0 27%,#ff8a30 36%,#7a2a00 50%,transparent 68%)}
+
+/* ---------- Bienvenue ---------- */
+#title{position:absolute;left:0;right:0;top:10vh;text-align:center;font-family:'Cinzel',serif;font-weight:700;
+  font-size:clamp(32px,8.2vw,96px);letter-spacing:.36em;padding-left:.36em;color:#ffe9c8;pointer-events:none;z-index:3;white-space:nowrap}
+#title span{display:inline-block;opacity:0;filter:blur(20px);transform:translateY(26px) scaleY(1.9) rotate(var(--rot,0deg));
+  text-shadow:0 0 18px rgba(255,150,60,.85),0 0 60px rgba(255,100,20,.45)}
+#title.show span{animation:letterIn 2s cubic-bezier(.2,.8,.2,1) forwards,breathe 5.5s ease-in-out infinite;animation-fill-mode:forwards,none}
+@keyframes letterIn{to{opacity:1;filter:blur(0);transform:translateY(0) scaleY(1) rotate(var(--rot,0deg))}}
+@keyframes breathe{0%,100%{text-shadow:0 0 14px rgba(255,150,60,.65),0 0 46px rgba(255,100,20,.3)}50%{text-shadow:0 0 26px rgba(255,190,100,1),0 0 90px rgba(255,120,30,.6)}}
+#title.suck{transition:transform 3.2s cubic-bezier(.65,0,1,.55),opacity 3.2s ease-in,filter 3.2s ease-in;transform:translateY(34vh) scale(.1);opacity:0;filter:blur(8px)}
+
+#hint{position:absolute;left:50%;top:75vh;width:min(180px,40vw);height:1px;margin-left:calc(min(180px,40vw)/-2);z-index:3;opacity:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,220,170,.55),transparent);transition:opacity 2s}
+#hint.on{opacity:1;animation:hintPulse 3.4s ease-in-out infinite}
+#hint.off{opacity:0!important;animation:none}
+@keyframes hintPulse{0%,100%{opacity:.08}50%{opacity:.5}}
+#code{position:absolute;left:50%;top:68vh;width:240px;height:90px;margin-left:-120px;z-index:4;opacity:0;border:0;background:transparent;color:transparent;caret-color:transparent;font-size:16px;outline:none}
+
+/* ---------- gate ---------- */
+#gate{position:fixed;inset:0;z-index:20;display:grid;place-items:end center;padding-bottom:16vh;cursor:pointer;background:radial-gradient(circle,rgba(0,0,0,0) 30%,rgba(0,0,0,.55));transition:opacity 1.6s ease,visibility 1.6s}
+#gate.gone{opacity:0;visibility:hidden;pointer-events:none}
+.gateTxt{font-weight:200;letter-spacing:.42em;text-transform:uppercase;font-size:clamp(11px,2.6vw,15px);color:rgba(255,230,200,.85);animation:gt 3s ease-in-out infinite;text-align:center;padding:0 24px}
+@keyframes gt{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* ---------- orb buttons ---------- */
+.orb{--s:54px;position:relative;width:var(--s);height:var(--s);border:0;border-radius:50%;cursor:pointer;display:grid;place-items:center;color:#ffe9c8;outline:none;
+  background:radial-gradient(circle at 50% 38%,rgba(255,200,140,.22),rgba(8,8,22,.65) 72%);
+  box-shadow:0 0 0 1px rgba(255,220,170,.28) inset,0 0 26px rgba(255,140,50,.16);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,color .35s;flex:none}
+.orb::before{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px dashed rgba(255,210,150,.5);animation:spin 16s linear infinite;transition:border-color .3s}
+.orb::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:1px solid transparent;border-top-color:rgba(160,210,255,.85);border-bottom-color:rgba(255,170,90,.55);animation:spin 5.5s linear infinite reverse;transition:inset .35s}
+.orb:hover{transform:scale(1.1);color:#fff;box-shadow:0 0 0 1px rgba(255,235,200,.6) inset,0 0 40px rgba(255,160,70,.55),0 0 90px rgba(120,170,255,.25)}
+.orb:hover::before{animation-duration:3.5s;border-color:rgba(255,235,190,.95)}
+.orb:hover::after{inset:-18px;animation-duration:1.8s}
+.orb:active{transform:scale(.92)}
+.orb svg{width:46%;height:46%;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;position:relative}
+.orb.big{--s:118px}
+.orb.big svg{width:42%;height:42%}
+.orb.small{--s:42px}
+.orb.pulse{animation:orbPulse 2.2s ease-in-out infinite}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 0 1px rgba(255,220,170,.35) inset,0 0 26px rgba(255,140,50,.25)}50%{box-shadow:0 0 0 1px rgba(255,235,200,.8) inset,0 0 60px rgba(255,170,80,.7),0 0 120px rgba(120,170,255,.3)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+#snd{position:absolute;right:calc(26px + env(safe-area-inset-right));top:calc(26px + env(safe-area-inset-top));z-index:15;opacity:0;pointer-events:none;transition:opacity 1.5s}
+#snd.on{opacity:1;pointer-events:auto}
+#snd .slash{opacity:0;transition:opacity .2s}
+#snd.muted .slash{opacity:1}
+#snd.muted .wave{opacity:.25}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:26px;z-index:12;opacity:0;pointer-events:none;transition:opacity 1.2s}
+#hud.on{opacity:1;pointer-events:auto}
+#dots{display:flex;gap:9px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);position:relative;cursor:pointer;transition:background .4s,box-shadow .4s,transform .4s}
+.dot:hover{transform:scale(1.5);background:rgba(255,230,190,.7)}
+.dot.on{background:#ffd9a0;box-shadow:0 0 14px #ff9a3c;transform:scale(1.25)}
+.dot.on::after{content:"";position:absolute;inset:-6px;border:1px solid rgba(255,200,140,.6);border-radius:50%;animation:ping 2.2s ease-out infinite}
+@keyframes ping{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.8);opacity:0}}
+@media(max-width:560px){#hud{gap:18px}.orb{--s:46px}.orb.big{--s:104px}#dots{gap:6px}.dot{width:7px;height:7px}}
+
+/* ---------- deck ---------- */
+#deck{position:absolute;inset:0;z-index:5;visibility:hidden;perspective:1300px}
+#deck.masked{-webkit-mask-image:radial-gradient(circle at 50% 50%,#000 calc(var(--r)*1px - 140px),transparent calc(var(--r)*1px));
+  mask-image:radial-gradient(circle at 50% 50%,#000 calc(var(--r)*1px - 140px),transparent calc(var(--r)*1px))}
+#slides{position:absolute;inset:0;transform-style:preserve-3d}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,220,170,.3) transparent;padding:4vh 5vw 0;opacity:0;pointer-events:none;
+  transition:opacity var(--td,.95s) ease,transform var(--td,.95s) cubic-bezier(.2,.8,.2,1),filter var(--td,.95s) ease;will-change:transform,opacity,filter}
+.slide.before{transform:translate3d(-9vw,0,-280px) scale(.94) rotateY(8deg);filter:blur(14px)}
+.slide.after{transform:translate3d(9vw,0,-280px) scale(.94) rotateY(-8deg);filter:blur(14px)}
+.slide.active{opacity:1;pointer-events:auto;transform:none;filter:none}
+.card{position:relative;width:min(900px,100%);padding:clamp(28px,5vw,64px);border-radius:28px;overflow:hidden;
+  background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.02) 40%,rgba(10,12,28,.55));
+  border:1px solid rgba(255,230,200,.16);
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);
+  box-shadow:0 30px 120px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03) inset,0 0 80px rgba(255,140,50,.07)}
+.card::before{content:"";position:absolute;left:-30%;top:0;width:60%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,220,170,.9),transparent);animation:sweep 6s linear infinite}
+@keyframes sweep{from{left:-60%}to{left:110%}}
+.card .num{font-family:'Cinzel',serif;font-size:clamp(60px,14vw,150px);line-height:.9;font-weight:700;position:absolute;right:28px;top:14px;color:transparent;-webkit-text-stroke:1px rgba(255,220,170,.22);pointer-events:none}
+.card h2{font-family:'Noto Serif',serif;font-weight:300;font-size:clamp(28px,5vw,58px);letter-spacing:.04em;margin-bottom:.5em;color:#fff2de;text-shadow:0 0 30px rgba(255,160,70,.35);max-width:80%}
+.card p{font-weight:300;font-size:clamp(15px,2.2vw,22px);line-height:1.65;color:rgba(235,240,255,.85);max-width:46em}
+.card>*:not(.num){opacity:0;transform:translateY(20px);filter:blur(6px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1),filter .8s}
+.slide.active .card>*:not(.num){opacity:1;transform:none;filter:none;transition-delay:calc(var(--i,0)*.1s + .3s)}
+.rewwrap{display:flex;flex-direction:column;align-items:center;gap:26px;margin-top:34px}
+.rewcap{font-weight:200;letter-spacing:.5em;text-transform:uppercase;font-size:12px;color:rgba(255,225,190,.8);padding-left:.5em}
+
+/* rewind look */
+#deck.rew .slide{--td:.2s}
+#deck.rew .slide.after{transform:translate3d(26vw,0,-520px) scale(.78) rotateY(-28deg);filter:blur(10px) hue-rotate(40deg)}
+#deck.rew .slide.before{transform:translate3d(-26vw,0,-520px) scale(.78) rotateY(28deg)}
+#deck.rew .slide .card>*:not(.num){transition-delay:0s!important;transition-duration:.18s}
+#deck.rew .slide.active .card{animation:glitch .16s steps(2) infinite;text-shadow:3px 0 rgba(255,40,90,.55),-3px 0 rgba(40,200,255,.55)}
+@keyframes glitch{0%{transform:translate(0,0) skewX(0)}25%{transform:translate(-4px,1px) skewX(-1deg)}50%{transform:translate(3px,-2px) skewX(1deg)}75%{transform:translate(-2px,2px)}100%{transform:translate(0,0)}}
+#rewOverlay{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:0;transition:opacity .6s;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 3px),radial-gradient(circle,transparent 35%,rgba(70,110,255,.22) 100%);mix-blend-mode:screen}
+#rewOverlay.on{opacity:1;animation:flick .14s steps(2) infinite}
+@keyframes flick{0%{transform:translateY(0)}50%{transform:translateY(-3px)}100%{transform:translateY(2px)}}
+
+/* ---------- final ---------- */
+#final{position:absolute;left:0;right:0;top:9vh;text-align:center;font-family:'Noto Serif','Exo 2',serif;font-weight:300;font-size:clamp(26px,6.4vw,74px);
+  letter-spacing:.05em;line-height:1.25;color:#fff7e0;z-index:8;pointer-events:none;padding:0 4vw}
+#final span{display:inline-block;opacity:0;filter:blur(16px);transform:translateY(22px) scale(1.25);
+  text-shadow:0 0 22px rgba(255,215,130,.95),0 0 70px rgba(255,170,60,.55)}
+#final.show span{animation:finIn 1.9s cubic-bezier(.2,.8,.2,1) forwards,finGlow 5s ease-in-out infinite;animation-fill-mode:forwards,none}
+@keyframes finIn{to{opacity:1;filter:blur(0);transform:none}}
+@keyframes finGlow{0%,100%{text-shadow:0 0 18px rgba(255,215,130,.8),0 0 60px rgba(255,170,60,.45)}50%{text-shadow:0 0 34px rgba(255,235,170,1),0 0 110px rgba(255,190,80,.75)}}
+#again{position:absolute;left:50%;bottom:calc(34px + env(safe-area-inset-bottom));margin-left:-27px;z-index:12;opacity:0;pointer-events:none;transition:opacity 2s}
+#again.on{opacity:1;pointer-events:auto}
+
+/* =====================================================================
+   КОНТЕНТ СЛАЙДОВ (перенесён из «Tocopy», оформлен в стиле index)
+   ===================================================================== */
+.slide::after{content:"";flex:0 0 120px}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-thumb{background:rgba(255,220,170,.28);border-radius:9px}
+.card{margin:auto;flex:none}
+.card.wide{width:min(1120px,100%);padding:clamp(20px,3.4vw,50px)}
+.card.wide h2{max-width:88%}
+.card .kicker{font-weight:200;letter-spacing:.5em;text-transform:uppercase;font-size:12px;line-height:1.6;color:rgba(255,225,190,.8);margin-bottom:20px;padding-left:.1em;max-width:78%}
+.card h3{font-family:'Noto Serif',serif;font-weight:400;font-size:clamp(17px,1.9vw,22px);letter-spacing:.02em;color:#fff2de;margin-bottom:.45em}
+.card>h3{margin:8px 0 14px}
+.card p.lead{margin-bottom:1.5em}
+.card p.note{font-size:13px;line-height:1.6;color:rgba(235,240,255,.55);margin-top:14px}
+.card b{font-weight:600}
+.hl{color:#ffd9a0;text-shadow:0 0 22px rgba(255,150,60,.4)}
+.mut{color:rgba(235,240,255,.5)}
+.shine{background:linear-gradient(90deg,#ffd9a0,#fff,#9fd0ff,#ffd9a0);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
+@keyframes shine{to{background-position:-300% 0}}
+.card h2.subhead{font-size:clamp(20px,2.8vw,32px);margin:38px 0 16px;max-width:none}
+
+/* ---- появление внутренних блоков ---- */
+.rv,.rvf{opacity:0;transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1),filter .8s;transition-delay:var(--d,.5s)}
+.rv{transform:translateY(22px);filter:blur(6px)}
+.rv.l{transform:translateX(-46px)}
+.rv.r{transform:translateX(46px)}
+.rv.z{transform:scale(.88)}
+.slide.active .rv,.slide.active .rvf{opacity:1}
+.slide.active .rv{transform:none;filter:none}
+.slide:not(.active) .rv,.slide:not(.active) .rvf{transition-duration:.25s;transition-delay:0s}
+.ic.rv{transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1),filter .8s,translate .35s,border-color .35s,box-shadow .35s;
+  transition-delay:var(--d,.5s),var(--d,.5s),var(--d,.5s),0s,0s,0s}
+.slide:not(.active) .ic.rv{transition-duration:.25s,.25s,.25s,.35s,.35s,.35s;transition-delay:0s}
+#deck.rew .slide .rv,#deck.rew .slide .rvf{transition-duration:.18s;transition-delay:0s!important}
+
+/* ---- сетки и внутренние карточки ---- */
+.grid{display:grid;gap:16px}
+.grid>*{min-width:0}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.card>.grid{margin:6px 0 22px}
+.ic{position:relative;padding:22px;border-radius:20px;
+  background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.015) 45%,rgba(10,12,28,.45));
+  border:1px solid rgba(255,230,200,.13)}
+.ic:hover{translate:0 -4px;border-color:rgba(255,220,170,.38);box-shadow:0 18px 50px rgba(0,0,0,.4),0 0 40px rgba(255,140,50,.12)}
+.ic.hot{border-color:rgba(255,210,150,.5);box-shadow:0 0 50px rgba(255,140,50,.14)}
+.ic.wideic{margin-top:16px}
+.ic h3{font-size:clamp(17px,1.7vw,20px);margin-bottom:8px}
+.ic p,.ic li{font-size:14.5px;line-height:1.65;font-weight:300;color:rgba(235,240,255,.74);max-width:none}
+.ic p+p{margin-top:6px}
+.ic ul{padding-left:18px;margin-top:8px}
+.ic li{margin-bottom:5px}
+.ic li::marker{color:rgba(255,200,140,.75)}
+.ic .tag{display:block;font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;margin:0 0 8px}
+.tag.bad{color:#ff9a86}
+.tag.good{color:#ffd9a0}
+.bignum{font-family:'Noto Serif',serif;font-weight:300;font-size:clamp(26px,3.6vw,44px);line-height:1.1;color:#ffd9a0;text-shadow:0 0 28px rgba(255,150,60,.4)}
+.bignum.sm{font-size:clamp(20px,2.4vw,30px);margin-top:4px}
+.ic .bignum+p{margin-top:10px}
+
+/* ---- 1 слайд: статистика, кнопка ---- */
+.stats{display:flex;flex-wrap:wrap;gap:14px;margin:30px 0 32px}
+.stat{flex:1 1 150px;min-width:0;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,230,200,.14)}
+.stat b{display:block;font-family:'Noto Serif',serif;font-weight:400;font-size:clamp(19px,2.4vw,28px);line-height:1.2;white-space:nowrap}
+.stat>span{display:block;margin-top:6px;font-size:13px;font-weight:300;color:rgba(235,240,255,.6)}
+.btn{position:relative;overflow:hidden;border:1px solid rgba(255,225,190,.55);border-radius:999px;padding:14px 38px;cursor:pointer;
+  font:inherit;font-weight:300;letter-spacing:.3em;text-transform:uppercase;font-size:13px;color:#fff2de;
+  background:radial-gradient(circle at 50% 30%,rgba(255,200,140,.28),rgba(30,16,8,.55));
+  box-shadow:0 0 30px rgba(255,140,50,.2);transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s}
+.btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,240,210,.45),transparent);transform:skewX(-20deg);animation:btnSweep 3.4s ease-in-out infinite}
+@keyframes btnSweep{0%,55%{left:-60%}100%{left:130%}}
+.btn:hover{transform:scale(1.06);border-color:rgba(255,235,200,.95);box-shadow:0 0 50px rgba(255,160,70,.55)}
+.btn:active{transform:scale(.95)}
+.by{margin-top:28px;font-size:14px;font-weight:300;letter-spacing:.06em;color:rgba(235,240,255,.6)}
+.by b{color:#fff2de;font-weight:400}
+.slide p b{color:#fff2de}
+
+/* ---- таблица товаров ---- */
+.tblwrap{overflow-x:auto;border-radius:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,230,200,.13);padding:6px 16px}
+.tblwrap table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:720px}
+.tblwrap th,.tblwrap td{padding:12px 10px;text-align:right;border-bottom:1px solid rgba(255,230,200,.09);white-space:nowrap;font-weight:300}
+.tblwrap th:first-child,.tblwrap td:first-child{text-align:left}
+.tblwrap th{color:rgba(235,240,255,.55);font-weight:400;font-size:11.5px;text-transform:uppercase;letter-spacing:.1em}
+.tblwrap td small{color:rgba(235,240,255,.5)}
+.tblwrap td .sz{color:rgba(235,240,255,.5);font-size:12.5px;margin-left:4px}
+.tblwrap td.sell{font-weight:600;color:#ffd9a0;font-size:16px}
+.tblwrap tr.sethead td{padding-top:20px;color:#ffd9a0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;border-bottom:0}
+.tblwrap tr.setrow td{background:rgba(255,200,130,.07)}
+.tblwrap tr.setrow td:first-child{border-radius:12px 0 0 12px;font-weight:600}
+.tblwrap tr.setrow td:last-child{border-radius:0 12px 12px 0}
+.pos{color:#ffd9a0}
+.neg{color:#ff9a86}
+
+/* ---- карта ---- */
+.mapwrap{display:grid;grid-template-columns:1.75fr 1fr;gap:18px;align-items:start}
+.mapbox{position:relative;border:1px solid rgba(255,230,200,.2);border-radius:22px;overflow:hidden;background:radial-gradient(circle at 50% 38%,rgba(255,170,90,.1),rgba(6,8,20,.5) 70%);box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 70px rgba(255,140,50,.08),inset 0 0 0 1px rgba(255,255,255,.03)}
+.mapbox::before{content:"";position:absolute;left:-30%;top:0;width:60%;height:1px;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,220,170,.9),transparent);animation:sweep 6s linear infinite;pointer-events:none}
+.mapbox svg{display:block;width:100%;height:auto}
+.slide:not(.active) .mapbox *{animation-play-state:paused}
+.grat{stroke:#ffd9a0;stroke-opacity:.07;stroke-width:1;stroke-dasharray:2 7}
+.gl{fill:#ffe9c8;fill-opacity:.35;font-size:10px;font-family:'Exo 2',sans-serif;font-weight:200;letter-spacing:.1em}
+.nb{fill:#ffe9c8;fill-opacity:.38;font-size:11px;text-anchor:middle;letter-spacing:.34em;font-family:'Exo 2',sans-serif;font-weight:200}
+.scan{animation:mscan 8s linear infinite}
+@keyframes mscan{from{transform:translateX(-140px)}to{transform:translateX(1040px)}}
+.ctry{cursor:pointer}
+.ctry .cfill{transition:fill-opacity .3s}
+.ctry:hover .cfill{fill-opacity:.26}
+.ctry.on .cfill{fill-opacity:.36}
+.coutline{stroke-dasharray:1;stroke-dashoffset:1;pointer-events:none}
+.slide.active .coutline{animation:mdraw 2.6s cubic-bezier(.2,.75,.2,1) .8s forwards}
+@keyframes mdraw{to{stroke-dashoffset:0}}
+.rl{fill:#fff2de;fill-opacity:.7;font-family:'Noto Serif',serif;font-weight:300;font-size:20px;pointer-events:none;letter-spacing:.28em;text-anchor:middle;paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:3px}
+.mk{cursor:pointer;opacity:0}
+.slide.active .mk{animation:mfadeUp .7s cubic-bezier(.2,.75,.2,1) 1.9s both}
+@keyframes mfadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.mk .ring{fill:none;stroke:var(--c);stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:mring 2.6s ease-out infinite}
+.mk .r2{animation-delay:1.3s}
+@keyframes mring{0%{transform:scale(.7);opacity:.9}100%{transform:scale(3.4);opacity:0}}
+.mk .core{fill:var(--c);stroke:#fff2de;stroke-width:1.2;filter:drop-shadow(0 0 5px var(--c))}
+.mk .orbit{fill:none;stroke:var(--c);stroke-opacity:.6;stroke-width:1;stroke-dasharray:2 4;transform-box:fill-box;transform-origin:center;animation:morbit 14s linear infinite}
+@keyframes morbit{to{transform:rotate(360deg)}}
+.mk .lab rect{fill:#0a0c1c;fill-opacity:.72;stroke:var(--c);stroke-opacity:.5;transition:fill .25s,fill-opacity .25s}
+.mk .lab text{fill:#fff2de;font-size:12px;font-weight:400;letter-spacing:.04em;font-family:'Exo 2',sans-serif;transition:fill .25s}
+.mk:hover .lab rect,.mk.on .lab rect{fill:var(--c);fill-opacity:1}
+.mk:hover .lab text,.mk.on .lab text{fill:#1a0f06}
+.flow{fill:none;stroke:var(--c);stroke-width:1.4;stroke-dasharray:2 8;stroke-linecap:round;animation:mflow 1.3s linear infinite;opacity:.75;pointer-events:none}
+@keyframes mflow{to{stroke-dashoffset:-14}}
+.panel{background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.015) 45%,rgba(10,12,28,.45));border:1px solid rgba(255,230,200,.13);border-radius:22px;padding:22px;min-height:320px}
+.panel>*{animation:mpanelIn .5s cubic-bezier(.2,.8,.2,1) both}
+.panel>*:nth-child(2){animation-delay:.06s}.panel>*:nth-child(3){animation-delay:.12s}.panel>*:nth-child(4){animation-delay:.18s}.panel>*:nth-child(5){animation-delay:.24s}
+@keyframes mpanelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.panel h3{font-size:22px;margin-bottom:4px}
+.panel .role{color:#ffd9a0;font-size:13px;font-weight:600;letter-spacing:.04em;margin-bottom:12px}
+.panel ul{padding-left:18px}
+.panel li{color:rgba(235,240,255,.8);font-size:14.5px;line-height:1.6;margin-bottom:6px;font-weight:300}
+.panel li::marker{color:rgba(255,200,140,.75)}
+.warn{margin-top:12px;background:rgba(255,184,77,.08);border:1px solid rgba(255,184,77,.3);color:#ffb84d;border-radius:14px;padding:11px 13px;font-size:13px;line-height:1.5;font-weight:300}
+.warn.neutral{color:#d4dbe5;border-color:rgba(255,230,200,.16);background:rgba(255,255,255,.05)}
+
+/* ---- калькуляторы ---- */
+.calc{display:grid;grid-template-columns:1.05fr 1fr;gap:18px}
+.card>.calc{margin:6px 0 4px}
+.calc .ic{padding:24px}
+.field{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
+.field label{font-size:15px;font-weight:400;color:#fff2de;line-height:1.4}
+.field label small{display:block;color:rgba(235,240,255,.55);font-weight:300;font-size:12.5px;margin-top:2px}
+.stepper{display:flex;align-items:center;gap:8px;flex:none}
+.stepper button{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,230,200,.24);font:inherit;font-size:20px;color:#fff2de;cursor:pointer;transition:transform .25s,border-color .25s,box-shadow .25s}
+.stepper button:hover{border-color:rgba(255,235,200,.85);box-shadow:0 0 20px rgba(255,160,70,.4);transform:scale(1.1)}
+.stepper button:active{transform:scale(.88)}
+.stepper input{width:92px;text-align:center;font-size:20px;font-weight:600}
+.calc input[type=number]{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,230,200,.2);border-radius:12px;padding:11px 12px;font:inherit;font-size:15px;color:#fff2de;outline:none;transition:border-color .25s,box-shadow .25s}
+.calc input[type=number]:focus{border-color:rgba(255,225,180,.85);box-shadow:0 0 0 3px rgba(255,160,70,.18)}
+.calc .stepper input[type=number]{width:92px}
+.slider{margin:6px 0 18px}
+.slider label{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:7px;color:rgba(235,240,255,.82);font-weight:300}
+.slider label b{color:#ffd9a0;font-weight:600}
+.calc input[type=range]{width:100%;accent-color:#ffb066;height:6px}
+.pricein label{font-size:12.5px;color:rgba(235,240,255,.55);display:block;margin-bottom:4px}
+.res{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,230,200,.1);font-size:15px;font-weight:300}
+.res span{color:rgba(235,240,255,.62)}
+.res b{font-variant-numeric:tabular-nums;font-weight:600;color:#fff2de;text-align:right}
+.res.tot{border:0;padding-top:16px;align-items:flex-end}
+.res.tot b{font-family:'Noto Serif',serif;font-weight:400;font-size:clamp(26px,3vw,36px);color:#ffd9a0;text-shadow:0 0 28px rgba(255,150,60,.4)}
+.stack{height:12px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;display:flex;margin:14px 0 4px}
+.stack i{display:block;height:100%;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.calc h3{margin-bottom:6px}
+
+@media(max-width:900px){
+  .mapwrap,.calc{grid-template-columns:1fr}
+  .g3{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .g2,.g3{grid-template-columns:1fr}
+  .stat{flex-basis:calc(50% - 7px)}
+  .card .kicker{letter-spacing:.3em}
+  .field{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div id="fb"></div>
+  <canvas id="fx"></canvas>
+  <canvas id="rg"></canvas>
+  <div id="title" aria-label="Bienvenue"></div>
+  <div id="hint"></div>
+  <input id="code" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="code">
+  <div id="deck"><div id="slides"></div></div>
+  <div id="final" aria-label="Назарларыңызға рахмет!"></div>
+  <div id="rewOverlay"></div>
+  <div id="hud">
+    <button class="orb" id="prev" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M14.5 6 8.5 12l6 6"/></svg></button>
+    <div id="dots"></div>
+    <button class="orb" id="next" aria-label="Вперёд"><svg viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></svg></button>
+  </div>
+  <button class="orb small" id="snd" aria-label="Звук"><svg viewBox="0 0 24 24"><path d="M4 10v4h3l5 4V6L7 10z"/><path class="wave" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11"/><path class="slash" d="M3 3l18 18"/></svg></button>
+  <button class="orb" id="again" aria-label="Заново"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v4.2h-4.2"/></svg></button>
+</div>
+<div id="gate"><div class="gateTxt">Коснитесь, чтобы войти во тьму</div></div>
+
+<script>
+/* =====================================================================
+   НАСТРОЙКИ (меняйте здесь)
+   ===================================================================== */
+const ACCESS_CODE = '1028';           // код доступа (любая длина, только цифры)
+
+// Слайды 1–9: контент из презентации «Спорттық тамақтану». Под текстом последнего слайда автоматически появляется кнопка перемотки времени.
+// title — заголовок, text — вводный текст, kicker — маленькая надпись над заголовком, html — остальное содержимое карточки, wide — широкая карточка
+const OWNER = 'Сержан Біржан';
+
+// Жеткізу бағасы: 1 данаға, ₸. Жинақ = креатин + протеин = 1 500 ₸ (1 000–2 000 ₸ аралығында)
+const DELIV = {creatine: 500, protein: 1000, sup: 500, amino4: 500, amino1: 1000};
+const PRODUCTS = [
+  {id:'c1', kind:'creatine', name:'Maxler креатин',      size:'300 г', kg:0.3, inv:4000, sell:10000},
+  {id:'p1', kind:'protein',  name:'Maxler Whey протеин', size:'2 кг',  kg:2,   inv:9000, sell:24000},
+  {id:'a1', kind:'sup',     name:'Ашваганда', size:'', kg:0, inv:2500, sell:6000},
+  {id:'d1', kind:'sup',     name:'Д3+К2', size:'', kg:0, inv:2500, sell:7000},
+  {id:'b1', kind:'sup',     name:'BCAA Optimum Nutrition', size:'', kg:0, inv:2500, sell:8000},
+  {id:'m4', kind:'amino4',  name:'Аминқышқыл кешені (Optimum Nutrition)', size:'400 г', kg:.4, inv:3500, sell:9000},
+  {id:'m1', kind:'amino1',  name:'Аминқышқыл кешені (Optimum Nutrition)', size:'1 кг', kg:1, inv:12500, sell:25000}
+];
+const SETS = [
+  {id:'s1', name:'«Диас качок» сэті', items:['c1','p1'], price:32000}
+];
+const BASE_QTY = 40;   // бастапқы партия (жинақ)
+
+const SLIDES = [
+  /* 1 — БАСТАПҚЫ */
+  { kicker:'Бизнес идея', lead:true, wide:true,
+    title:'Спорттық тамақтану<br><span class="hl">Университеттің</span> жанында.',
+    text:'Түпнұсқа креатин мен протеинді ресми жеткізушіден тікелей аламыз да, Қазақстанда сатамыз. Әр тауарға түпнұсқалық сертификаты тіркеліп беріледі.',
+    html:`<div class="stats">
+      <div class="stat rv"><b class="hl">40 жинақ</b><span>бастапқы партия</span></div>
+      <div class="stat rv"><b class="hl">480&nbsp;000&nbsp;₸</b><span>тауарға кететін қаржы</span></div>
+      <div class="stat rv"><b class="hl">40&nbsp;000&nbsp;₸</b><span>заказға кететін қаржы</span></div>
+      <div class="stat rv"><b class="shine">700–1&nbsp;400&nbsp;₸</b><span>1 жинаққа жеткізу</span></div>
+    </div>
+    <div class="herobtn"><button class="btn" data-next>Бастау →</button></div>
+    <div class="by">Жоба авторы: <b>${OWNER}</b></div>` },
+
+  /* 2 — ИДЕЯ */
+  { kicker:'Идея', lead:true, wide:true,
+    title:'Идея қиын емес.',
+    text:'Қытай мен Үндістанда түпнұсқа креатин мен протеиннің бағасы төмен. Ал Қазақстанда дәл сондай өнім едәуір қымбат тұрады. Біздің табысымыз — осы баға айырмасында.',
+    html:`<div class="grid g2">
+      <div class="ic rv"><h3>Не сатамыз</h3><p>Ашваганда, аминқышқылдар, Д3+К2, BCAA, протеин және креатин.</p><ul><li>Ашваганда: 1 000–2 000 ₸-ға аламыз, 5 000–7 000 ₸-ға сатамыз.</li><li>Аминқышқылдар: 2 000–4 000 ₸-ға аламыз, 600 г 8 000–13 000 ₸-ға сатамыз.</li><li>Д3+К2: 2 000–3 500 ₸-ға аламыз, 6 000–8 000 ₸-ға сатамыз. Үстеме аз, себебі тауар әрдайым жүрмейді.</li></ul></div>
+      <div class="ic rv"><h3>Бастапқы көлем</h3><p>40 жинақ: Қытайдан 20, Үндістаннан 20. Ішінде: креатин, протеин, ашваганда, аминқышқыл, Д3+К2, BCAA (Optimum Nutrition).</p></div>
+      <div class="ic rv"><h3>Қайдан аламыз</h3><p>Қытай мен Үндістандағы ресми жеткізушілерден.</p></div>
+      <div class="ic rv"><h3>Не береміз</h3><p>Әр тауарға түпнұсқалық сертификаты тіркеледі.</p></div>
+    </div>` },
+
+  /* 3 — КЛИЕНТ МӘСЕЛЕСІ */
+  { kicker:'Клиент мәселесі', wide:true,
+    title:'Клиент мәселесі',
+    html:`<div class="grid g3">
+      <div class="ic rv"><div class="bignum">1</div><p>Студенттер спорттық питаниенің түпнұсқа екеніне сенімді емес, жалған өнімдерді сатып алу қаупі бар.</p></div>
+      <div class="ic rv"><div class="bignum">2</div><p>Түпнұсқа спорттық питание қымбат немесе университеттің жанынан табу қиын.</p></div>
+      <div class="ic rv"><div class="bignum">3</div><p>Студенттерге қандай қоспаны қалай ішуді түсіндіретін ақпарат жетіспейді.</p></div>
+    </div>
+    <h3>Қандай тауар аламыз</h3>
+    <div class="tblwrap"><table id="ptable"></table></div>
+    <p class="note">Жарнама мен курьер есепке алынбаған. Жеткізу: креатинге 500 ₸, протеинге 1 000 ₸, қосымшаларға 500 ₸ (аминқышқыл 1 кг — 1 000 ₸).</p>` },
+
+  /* 4 — МАҚСАТТЫ АУДИТОРИЯ */
+  { kicker:'Мақсатты аудитория', wide:true, lead:true,
+    title:'Мақсатты аудитория',
+    text:'18–25 жас аралығындағы жастар. Кейде тіпті 13–18 жас аралығындағы жігіттер де бар.',
+    html:`<h3>Бәсекелестер</h3>
+    <div class="grid g3">
+      <div class="ic rv l"><h3>Kaspi.kz</h3><span class="tag bad">Минустары</span><ul><li>Жалған тауарлар кездеседі.</li><li>Kaspi сіздің тауарыңыздың сапасына жауап бермейді.</li><li>Kaspi-де күшті заттар (стероидтың бастапқы түрлері) сатылуы мүмкін.</li></ul></div>
+      <div class="ic hot rv z"><h3 class="hl">Біздің артықшылығымыз</h3><span class="tag good">Плюстары</span><ul><li>Әр тауарға түпнұсқалық сертификаты тіркеледі.</li><li>Баға арзан: сертификатты креатин 10 000–15 000 ₸.</li><li>Тауар университеттің жанында, қалай ішуді түсіндіреміз.</li></ul></div>
+      <div class="ic rv r"><h3>Wildberries</h3><span class="tag bad">Минустары</span><ul><li>Жалған тауарлар кездеседі.</li><li>Боттар арқылы жалған пікірлер жазылады.</li><li>Kaspi сияқты, әлсіз стероид пен тестостерон сатылуы мүмкін.</li></ul></div>
+    </div>` },
+
+  /* 5 — КАРТА */
+  { kicker:'Құндылық ұсыныстар', wide:true, lead:true,
+    title:'Өндіріс картасы',
+    text:'Әр тауарға түпнұсқалық сертификаты тіркеледі. Сертификатты креатин Kaspi-де 20 000–25 000 ₸ (шартты), бізде 10 000–15 000 ₸. Тауар университеттің жанында.',
+    html:`<div class="mapwrap">
+      <div class="mapbox rv z"><svg id="map1" viewBox="0 0 900 612"></svg></div>
+      <div class="panel rv r" id="panel1"></div>
+    </div>` },
+
+  /* 6 — БАҒА, КЛИЕНТ САНЫ, ШЫҒЫНДАР */
+  { kicker:'Баға, клиент саны, шығындар', wide:true,
+    title:'Баға, клиент саны, шығындар.',
+    html:`<div class="grid g3">
+      <div class="ic rv"><h3>Баға</h3><p>«Диас качок» сэті (Maxler whey протеин 2 кг + креатин 300 г)</p><div class="bignum" style="margin-top:10px"><u class="mut">32&nbsp;000&nbsp;₸</u> <span class="mut">→</span> 28&nbsp;990&nbsp;₸</div></div>
+      <div class="ic rv"><h3>Клиент саны</h3><div class="bignum" style="margin-top:10px">20–25 адам</div></div>
+      <div class="ic rv"><h3>Тұрақты шығын</h3><p>Қытайдан тапсырыс: 1 жинаққа шамамен 1 000–1 400 ₸. Үндістаннан (ашваганда, аминқышқыл): 1 жинаққа 700–900 ₸. Қытайдан 20 жинақ, Үндістаннан 20 жинақ тапсырыс береміз.</p></div>
+    </div>
+    <div class="calc" id="calc2"></div>` },
+
+  /* 7 — ШЫҒЫНСЫЗДЫҚ НҮКТЕСІ */
+  { kicker:'Шығынсыздық нүктесі', wide:true,
+    title:'Шығынсыздық нүктесі.',
+    html:`<div class="grid g2">
+      <div class="ic rv l"><h3>Бір сэттен маржа</h3><div class="bignum sm">32&nbsp;000 − 14&nbsp;500 = 17&nbsp;500&nbsp;₸</div><p style="margin-top:12px">Q₀ = 50 000 / 17 500 ≈ 2,9, яғни <b class="hl">3 сэт</b> сатылса, шығын жабылады.</p><p class="note">(Өзіндік құн: ашваганда, D3+K2, BCAA = 2 500 + жеткізу 500; аминқышқыл 400 г = 3 500 + 500; 1 кг = 12 500 + 1 000.)</p></div>
+      <div class="ic rv r"><h3>Аралас сатылым мысалы (1 ай)</h3><p>10 сэт, 5 ашваганда, 5 D3+K2, 5 BCAA, 5 аминқышқыл 400 г, 2 аминқышқыл 1 кг.</p><ul><li>Түсім: 520 000 ₸</li><li>Маржа: 283 000 ₸</li><li>Пайда: 283 000 − 50 000 = 233 000 ₸</li></ul></div>
+    </div>
+    <div class="ic hot rv wideic"><h3 class="hl">Шығынсыздық нүктесі (аралас)</h3><p>Маржа үлесі = 283 000 / 520 000 ≈ 54%</p><p>Q₀ = 50 000 / 0,54 ≈ 92 000 ₸ түсім, яғни шамамен <b class="hl">6 сатылым</b>.</p></div>` },
+
+  /* 8 — КАЛЬКУЛЯТОР */
+  { kicker:'Калькулятор', wide:true, lead:true,
+    title:'Жинақ санын жазып, есептеңіз',
+    text:'Қанша жинақ аларыңызды жазыңыз. Накладной, жеткізу, сату және пайда бірден шығады.',
+    html:`<div class="calc" id="calc"></div>
+    <h2 class="subhead">Екі тәуекел және оларды төмендету шаралары</h2>
+    <div class="grid g2">
+      <div class="ic rv l"><h3>1. Тауар сатылмай қалу тәуекелі</h3><p>Біз тек ең жиі өтетін (ходовой) тауарларды аламыз: креатин, протеин, BCAA, аминқышқылдар. Егер тауар 3–4 күн сатылмай тұрса, бағаны төмендетеміз. Алғашқы партия аз (40 жинақ), сондықтан шығын көп болмайды.</p></div>
+      <div class="ic rv r"><h3>2. Жеткізу кезінде тауар санының сәйкес келмеу тәуекелі</h3><p>Кейде зауытта тауар жетпесе, бір тауар аз, екіншісі көп салынуы мүмкін. Шара: тауар келгенде накладнойға қарап, санын бірден тексереміз. Тапсырыс бергенде жеткізушіден тауардың қоймада бар екенін алдын ала растатамыз. Сәйкессіздік болса, жеткізушімен бірден келісіп, айырмасын түзетеміз.</p></div>
+    </div>` },
+
+  /* 9 — РАХМЕТ + кнопка перемотки времени */
+  { lead:true,
+    title:'Назар аударғандарыңызға <span class="hl">рахмет!</span>',
+    text:`Жоба авторы: <b>${OWNER}</b>` }   // последний слайд: под текстом кнопка «Перемотка времени»
+];
+const FINAL_TEXT = 'Назарларыңызға рахмет!';   // надпись над белой дырой
+
+/* =====================================================================
+   ВСПОМОГАТЕЛЬНОЕ
+   ===================================================================== */
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const rand=(a=1,b)=>b===undefined?Math.random()*a:a+Math.random()*(b-a);
+const E={lin:t=>t,io:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,in:t=>t*t*t,out:t=>1-Math.pow(1-t,3),
+  expIn:t=>t===0?0:Math.pow(2,10*(t-1)),expOut:t=>t===1?1:1-Math.pow(2,-10*t)};
+
+/* состояние сцены (его читает шейдер) */
+const S={dist:26,spin:1.6,pulse:0,dir:1,white:0,flash:0,shake:0,phase:0,outPh:0,sky:0,mx:0,my:0,tmx:0,tmy:0};
+let state='gate', cur=0, time=0;
+
+/* ---------- твины ---------- */
+const tweens=[];
+function tween(obj,key,to,dur,ease=E.io,delay=0){
+  return new Promise(res=>{ tweens.push({obj,key,to,dur,ease,t:-delay,res,from:null}); });
+}
+function stepTweens(dt){
+  for(let i=tweens.length-1;i>=0;i--){
+    const w=tweens[i]; w.t+=dt; if(w.t<0) continue;
+    if(w.from===null) w.from=w.obj[w.key];
+    const k=Math.min(1,w.t/w.dur);
+    w.obj[w.key]=w.from+(w.to-w.from)*w.ease(k);
+    if(k>=1){ tweens.splice(i,1); w.res(); }
+  }
+}
+
+/* =====================================================================
+   АУДИО (Web Audio API, всё синтезируется)
+   ===================================================================== */
+const A=(()=>{
+  let ctx=null,master,dry,revIn,noiseBuf,brownBuf,droneG,ready=false,muted=false;
+  const droneOscs=[];
+  const now=()=>ctx.currentTime;
+  function mkNoise(brown){
+    const len=ctx.sampleRate*3,b=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let c=0;c<2;c++){const d=b.getChannelData(c);let last=0;
+      for(let i=0;i<len;i++){const w=Math.random()*2-1;if(brown){last=(last+0.02*w)/1.02;d[i]=last*3.5;}else d[i]=w;}}
+    return b;
+  }
+  function impulse(sec,decay){
+    const len=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);}
+    return b;
+  }
+  function route(node,wet=.3){
+    node.connect(dry);
+    if(wet){const g=ctx.createGain();g.gain.value=wet;node.connect(g);g.connect(revIn);}
+  }
+  function noiseSrc(brown){const s=ctx.createBufferSource();s.buffer=brown?brownBuf:noiseBuf;s.loop=true;return s;}
+  function lfo(freq,amt,param){const o=ctx.createOscillator();o.frequency.value=freq;const g=ctx.createGain();g.gain.value=amt;o.connect(g);g.connect(param);o.start();}
+  function env(g,t0,a,peak,d){g.gain.cancelScheduledValues(t0);g.gain.setValueAtTime(0.0001,t0);g.gain.linearRampToValueAtTime(peak,t0+a);g.gain.exponentialRampToValueAtTime(0.0001,t0+a+d);}
+  function tone(f,type,t0,a,peak,d,wet=.3){
+    const o=ctx.createOscillator();o.type=type;o.frequency.value=f;const g=ctx.createGain();env(g,t0,a,peak,d);
+    o.connect(g);route(g,wet);o.start(t0);o.stop(t0+a+d+.1);return o;
+  }
+  function burst(t0,dur,peak,ftype,f0,f1,q=1,wet=.3){
+    const n=noiseSrc(false),f=ctx.createBiquadFilter();f.type=ftype;f.Q.value=q;
+    f.frequency.setValueAtTime(f0,t0);f.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t0+dur);
+    const g=ctx.createGain();env(g,t0,Math.min(.02,dur/4),peak,dur);n.connect(f);f.connect(g);route(g,wet);n.start(t0);n.stop(t0+dur+.2);
+  }
+  function kick(t0,vel){
+    const o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(150,t0);o.frequency.exponentialRampToValueAtTime(36,t0+.28);
+    const g=ctx.createGain();env(g,t0,.005,.7*vel,.5);o.connect(g);route(g,.25);o.start(t0);o.stop(t0+.7);
+  }
+  function droneRate(mult,dur){
+    const t=now();droneOscs.forEach(({o,f})=>{const p=o.frequency;p.cancelScheduledValues(t);p.setValueAtTime(p.value,t);p.exponentialRampToValueAtTime(f*mult,t+Math.max(.05,dur));});
+  }
+  function droneLevel(v,tc=1){droneG.gain.cancelScheduledValues(now());droneG.gain.setTargetAtTime(v,now(),tc);}
+
+  function startDrone(){
+    droneG=ctx.createGain();droneG.gain.value=0;route(droneG,.55);
+    [[38,'sine',.5],[57.2,'sine',.28],[76.1,'triangle',.12],[28.5,'sine',.5]].forEach(([f,type,g])=>{
+      const o=ctx.createOscillator();o.type=type;o.frequency.value=f;const og=ctx.createGain();og.gain.value=g;
+      o.connect(og);og.connect(droneG);lfo(.05+Math.random()*.08,g*.4,og.gain);o.start();droneOscs.push({o,f});
+    });
+    const saw=ctx.createOscillator();saw.type='sawtooth';saw.frequency.value=45.4;
+    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=140;lp.Q.value=6;
+    const sg=ctx.createGain();sg.gain.value=.07;saw.connect(lp);lp.connect(sg);sg.connect(droneG);lfo(.07,70,lp.frequency);saw.start();droneOscs.push({o:saw,f:45.4});
+    // «давление газа» (по мотивам сонификации NASA): тёмный шум + медленные волны
+    const n=noiseSrc(true),bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=130;bp.Q.value=.9;
+    const ng=ctx.createGain();ng.gain.value=.55;n.connect(bp);bp.connect(ng);ng.connect(droneG);lfo(.04,60,bp.frequency);n.start();
+    const n2=noiseSrc(false),bp2=ctx.createBiquadFilter();bp2.type='bandpass';bp2.frequency.value=1100;bp2.Q.value=4;
+    const ng2=ctx.createGain();ng2.gain.value=.016;n2.connect(bp2);bp2.connect(ng2);ng2.connect(droneG);lfo(.09,500,bp2.frequency);n2.start();
+    droneG.gain.setTargetAtTime(.55,now(),2.5);
+  }
+  function init(){
+    if(ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    try{
+      ctx=new AC();master=ctx.createGain();master.gain.value=.9;
+      const comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.knee.value=20;comp.ratio.value=5;comp.attack.value=.01;comp.release.value=.25;
+      master.connect(comp);comp.connect(ctx.destination);dry=ctx.createGain();dry.connect(master);
+      const conv=ctx.createConvolver();conv.buffer=impulse(4.2,2.4);revIn=ctx.createGain();revIn.connect(conv);
+      const rout=ctx.createGain();rout.gain.value=.9;conv.connect(rout);rout.connect(master);
+      noiseBuf=mkNoise(false);brownBuf=mkNoise(true);startDrone();ready=true;
+    }catch(e){console.warn('audio',e);ctx=null;}
+  }
+  const G=fn=>(...a)=>{if(ready&&!muted)fn(...a);};
+  return {
+    init,resume(){if(ctx&&ctx.state!=='running')ctx.resume();},
+    toggle(){muted=!muted;if(master)master.gain.setTargetAtTime(muted?0:.9,now(),.08);return muted;},
+    get ready(){return ready;},
+    hover:G(()=>{tone(1500,'sine',now(),.005,.025,.12,.4);}),
+    click:G(()=>{const t=now();tone(520,'sine',t,.005,.07,.25,.5);tone(780,'triangle',t+.05,.005,.05,.35,.5);}),
+    digit:G(i=>{const sc=[262,294,330,392,440,523,587,659,784,880],f=sc[i%sc.length],t=now();
+      tone(f,'triangle',t,.01,.07,.6,.85);tone(f*2,'sine',t,.01,.022,.8,.9);}),
+    wrong:G(()=>{const t=now(),o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(34,t+.6);
+      const g=ctx.createGain();env(g,t,.01,.65,.7);o.connect(g);route(g,.4);o.start(t);o.stop(t+.9);burst(t,.5,.35,'lowpass',500,70,1,.3);}),
+    swish:G(()=>{const t=now();burst(t,.55,.1,'bandpass',300,2400,2,.4);tone(660,'sine',t+.05,.01,.045,.9,.7);tone(990,'sine',t+.12,.01,.03,1,.7);}),
+    buildup:G(dur=>{
+      const t=now();droneRate(3.2,dur);droneG.gain.cancelScheduledValues(t);droneG.gain.setValueAtTime(droneG.gain.value,t);droneG.gain.linearRampToValueAtTime(1.5,t+dur);
+      const o=ctx.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(55,t);o.frequency.exponentialRampToValueAtTime(2000,t+dur);
+      const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(150,t);lp.frequency.exponentialRampToValueAtTime(7000,t+dur);
+      const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+dur-.05);g.gain.linearRampToValueAtTime(0,t+dur+.03);
+      o.connect(lp);lp.connect(g);route(g,.35);o.start(t);o.stop(t+dur+.1);
+      const n=noiseSrc(false),bp=ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.5;bp.frequency.setValueAtTime(250,t);bp.frequency.exponentialRampToValueAtTime(6000,t+dur);
+      const ng=ctx.createGain();ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.3,t+dur-.05);ng.gain.linearRampToValueAtTime(0,t+dur+.03);
+      n.connect(bp);bp.connect(ng);route(ng,.3);n.start(t);n.stop(t+dur+.1);
+      let tt=.5,iv=.62;while(tt<dur-.3){kick(t+tt,.35+.65*tt/dur);iv*=.87;tt+=iv;}
+      droneG.gain.setTargetAtTime(0,t+dur,.03);
+    }),
+    boom:G(()=>{
+      const t=now();droneG.gain.cancelScheduledValues(t);droneG.gain.setValueAtTime(0.0001,t);
+      const o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(22,t+2.2);
+      const g=ctx.createGain();env(g,t,.005,1.25,3.2);o.connect(g);route(g,.35);o.start(t);o.stop(t+3.5);
+      burst(t,2.8,.9,'lowpass',9000,90,.8,.6);burst(t,.28,.5,'highpass',2000,2400,.7,.4);
+      for(let i=0;i<70;i++)tone(rand(900,5200),'sine',t+.1+Math.random()*3.2,.004,rand(.012,.04),.55,.9);
+      droneRate(1,3);droneG.gain.setTargetAtTime(.22,t+1,3);
+    }),
+    rewind:G(hops=>{
+      const t=now(),total=hops.reduce((a,b)=>a+b,0)/1000+1.1;
+      const o=ctx.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(90,t);o.frequency.exponentialRampToValueAtTime(3200,t+total);
+      const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(300,t);lp.frequency.exponentialRampToValueAtTime(9000,t+total);
+      const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.12,t+total);g.gain.linearRampToValueAtTime(0,t+total+.05);
+      o.connect(lp);lp.connect(g);route(g,.4);o.start(t);o.stop(t+total+.1);
+      burst(t,total,.22,'bandpass',400,8000,1.2,.4);
+      let acc=0;hops.forEach((h,i)=>{const tt=t+acc;burst(tt,.05,.35,'highpass',3500,3600,.7,.1);tone(i%2?820:620,'square',tt,.002,.05,.07,.2);
+        tone(1318*Math.pow(.9,i),'triangle',tt,.005,.05,.5,.75);acc+=h/1000;});
+      droneRate(2.4,total);droneG.gain.setTargetAtTime(.8,t+total*.5,1.2);
+    }),
+    whiteBuild:G(dur=>{
+      const t=now(),o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(1800,t+dur);
+      const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+dur);g.gain.linearRampToValueAtTime(0,t+dur+.04);
+      o.connect(g);route(g,.5);o.start(t);o.stop(t+dur+.1);
+      burst(t,dur,.3,'bandpass',500,9000,1,.6);droneRate(3.5,dur);droneG.gain.linearRampToValueAtTime(1.3,t+dur);
+      for(let i=0;i<6;i++)kick(t+dur*(.25+i*.13),.4+i*.1);
+    }),
+    whiteHole:G(()=>{
+      const t=now();droneG.gain.cancelScheduledValues(t);droneG.gain.setValueAtTime(.0001,t);droneRate(1,.1);droneG.gain.setTargetAtTime(.07,t+.5,.6);
+      // хор
+      const out=ctx.createGain();out.gain.setValueAtTime(.0001,t);out.gain.exponentialRampToValueAtTime(.9,t+2.6);out.gain.setTargetAtTime(.38,t+9,5);out.gain.setTargetAtTime(.0001,t+24,7);route(out,.85);
+      [[73.42,.8],[146.83,.9],[220,.7],[293.66,.8],[369.99,.55],[440,.5],[587.33,.45],[739.99,.33],[880,.24],[659.25,.18]].forEach(([f,gv])=>{
+        const vg=ctx.createGain();vg.gain.value=gv*.16;
+        const b1=ctx.createBiquadFilter(),b2=ctx.createBiquadFilter();b1.type=b2.type='bandpass';b1.frequency.value=780;b1.Q.value=5;b2.frequency.value=1180;b2.Q.value=7;
+        const gm=ctx.createGain();gm.gain.value=1;
+        [-9,0,9].forEach(c=>{const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=c;lfo(4.8+Math.random()*1.4,5+Math.random()*3,o.detune);
+          o.connect(gm);o.start(t);o.stop(t+36);});
+        gm.connect(b1);gm.connect(b2);b1.connect(vg);b2.connect(vg);
+        const s=ctx.createOscillator();s.type='sine';s.frequency.value=f;const sg=ctx.createGain();sg.gain.value=.5;s.connect(sg);sg.connect(vg);s.start(t);s.stop(t+36);
+        vg.connect(out);
+      });
+      // колокола-арпеджио
+      const bell=(f,t0,p)=>{[[1,1],[2.01,.5],[2.76,.4],[5.4,.2]].forEach(([r,a],i)=>tone(f*r,'sine',t0,.004,p*a,3.2/(1+i*.5),.9));};
+      const pent=[587.33,659.25,739.99,880,987.77,1174.66,1318.5,1479.98,1760];
+      pent.forEach((f,i)=>bell(f,t+.9+i*.26,.07));
+      pent.slice().reverse().forEach((f,i)=>bell(f,t+7+i*.5,.04));
+      burst(t,2.2,.5,'highpass',3000,6000,.6,.8);
+    })
+  };
+})();
+
+/* =====================================================================
+   WEBGL: чёрная / белая дыра (трассировка геодезических Шварцшильда)
+   ===================================================================== */
+const VS='attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}';
+const FS=`
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes; uniform vec2 uMouse;
+uniform float uTime,uDist,uPhase,uOutPh,uDir,uWhite,uFlash,uShake,uSky;
+
+float hash(vec3 p){p=fract(p*0.3183099+.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float noise(vec3 x){
+  vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);
+  return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);
+}
+float fbm(vec3 p){float a=0.5,s=0.0;for(int i=0;i<4;i++){s+=a*noise(p);p=p*2.03+vec3(1.7,9.2,3.1);a*=0.5;}return s;}
+
+vec3 bb(float t){
+  vec3 c0=vec3(0.30,0.02,0.0),c1=vec3(1.0,0.30,0.04),c2=vec3(1.0,0.68,0.26),c3=vec3(1.0,0.93,0.80),c4=vec3(0.78,0.88,1.0);
+  vec3 c=mix(c0,c1,smoothstep(0.0,0.3,t));
+  c=mix(c,c2,smoothstep(0.25,0.55,t));
+  c=mix(c,c3,smoothstep(0.5,0.85,t));
+  c=mix(c,c4,smoothstep(0.85,1.25,t));
+  return c;
+}
+vec4 disk(vec3 hp,vec3 vdir){
+  float rr=length(hp.xz);
+  float phi=atan(hp.z,hp.x);
+  float om=2.4*pow(rr,-1.5);
+  float ang=phi-om*uPhase;
+  vec3 q=vec3(cos(ang)*3.2,sin(ang)*3.2,rr*2.4-uOutPh);
+  float n=fbm(q);
+  float n2=noise(vec3(cos(ang)*9.0,sin(ang)*9.0,rr*7.0-uOutPh*2.0));
+  float edgeIn=smoothstep(2.55,2.95,rr);
+  float edgeOut=1.0-smoothstep(5.5,9.2,rr);
+  float dens=smoothstep(0.18,0.8,n*0.8+n2*0.35)*edgeIn*edgeOut;
+  float T=pow(2.6/rr,0.85);
+  vec3 tang=normalize(vec3(-hp.z,0.0,hp.x))*uDir;
+  float beta=clamp(0.62*sqrt(2.6/rr),0.0,0.62);
+  float D=clamp(1.0/(1.0-beta*dot(tang,-vdir)),0.45,2.2);
+  float I=pow(2.6/rr,1.9)*(0.55+1.25*n)*3.2*pow(D,3.0);
+  return vec4(bb(clamp(T*D*1.05,0.0,1.3))*I,clamp(dens*1.15,0.0,1.0));
+}
+vec3 starLayer(vec3 d,float sc,float thr,float rad){
+  vec3 q=d*sc;vec3 c=floor(q);vec3 f=fract(q);
+  float h=hash(c);
+  if(h<thr)return vec3(0.0);
+  vec3 pos=vec3(hash(c+3.1),hash(c+7.7),hash(c+11.3))*0.6+0.2;
+  float b=smoothstep(rad,0.0,length(f-pos));
+  float mag=pow(hash(c+19.9),3.0);
+  vec3 tint=mix(vec3(1.0,0.78,0.55),vec3(0.65,0.8,1.0),hash(c+23.1));
+  float tw=0.8+0.2*sin(uTime*(2.0+h*5.0)+h*40.0);
+  return tint*b*(0.25+2.4*mag)*tw;
+}
+vec3 stars(vec3 d){return starLayer(d,90.0,0.86,0.22)+starLayer(d,210.0,0.84,0.22)+starLayer(d,440.0,0.80,0.26);}
+vec3 nebula(vec3 d){
+  float n=fbm(d*2.2+3.0),m=fbm(d*4.5-7.0);
+  float a=smoothstep(0.48,0.95,n)*0.55;
+  vec3 c=mix(vec3(0.09,0.04,0.16),vec3(0.02,0.12,0.2),m)*a*0.7;
+  c+=vec3(0.12,0.05,0.02)*smoothstep(0.62,0.98,m)*0.25;
+  return c;
+}
+vec3 rotY(vec3 v,float a){float c=cos(a),s=sin(a);return vec3(c*v.x+s*v.z,v.y,-s*v.x+c*v.z);}
+
+void main(){
+  vec2 uv=(gl_FragCoord.xy-0.5*uRes)/uRes.y;
+  float asp=uRes.x/uRes.y;
+  if(asp<0.85)uv*=0.85/asp;
+  uv+=(vec2(noise(vec3(uTime*35.0,1.7,0.3)),noise(vec3(uTime*35.0,8.1,4.4)))-0.5)*uShake*0.035;
+  float yaw=uMouse.x*0.22,pitch=0.16+uMouse.y*0.09;
+  vec3 ro=uDist*vec3(sin(yaw)*cos(pitch),sin(pitch),cos(yaw)*cos(pitch));
+  vec3 fwd=-normalize(ro);
+  vec3 rgt=normalize(cross(fwd,vec3(0.0,1.0,0.0)));
+  vec3 up=cross(rgt,fwd);
+  vec3 v=normalize(fwd+(uv.x*rgt+uv.y*up)*0.9);
+  vec3 p=ro;
+  vec3 hc=cross(p,v);float h2=dot(hc,hc);
+  vec3 col=vec3(0.0);float trans=1.0;float rmin=1e9;float absorbed=0.0;
+  for(int i=0;i<220;i++){
+    float r=length(p);
+    rmin=min(rmin,r);
+    if(r<1.0){absorbed=1.0;break;}
+    if(r>uDist*1.05+2.0&&dot(p,v)>0.0)break;
+    float dt=clamp(0.06*r,0.025,20.0);
+    vec3 a=-1.5*h2*p/(r*r*r*r*r);
+    vec3 vn=normalize(v+a*dt);
+    vec3 pn=p+vn*dt;
+    if(p.y*pn.y<0.0){
+      float t=p.y/(p.y-pn.y);
+      vec3 hp=mix(p,pn,t);
+      float rr=length(hp.xz);
+      if(rr>2.5&&rr<9.5){
+        vec4 em=disk(hp,vn);
+        col+=trans*em.rgb*em.a;
+        trans*=1.0-em.a*0.92;
+      }
+    }
+    p=pn;v=vn;
+  }
+  if(absorbed<0.5){
+    vec3 d=rotY(v,uSky);
+    col+=trans*(stars(d)+nebula(d));
+    col+=trans*vec3(1.0,0.72,0.4)*exp(-pow((rmin-1.45)*3.2,2.0))*0.28;
+  }else{
+    col+=uWhite*vec3(1.0,0.93,0.8)*3.0;
+  }
+  float L=dot(col,vec3(0.3,0.55,0.15));
+  vec3 pearl=L*mix(vec3(1.0,0.74,0.38),vec3(0.96,0.97,1.0),smoothstep(0.2,1.6,L));
+  pearl*=1.0+0.18*vec3(sin(L*5.0+uTime),sin(L*5.0+2.1+uTime),sin(L*5.0+4.2+uTime));
+  col=mix(col,pearl*1.15,uWhite);
+  float rl=length(uv)*(uDist/26.0);
+  float a2=atan(uv.y,uv.x);
+  float g=exp(-rl*3.4);
+  float rays=pow(abs(sin(a2*9.0+uTime*0.25+sin(a2*3.0+uTime*0.1)*2.0)),10.0)+pow(abs(sin(a2*17.0-uTime*0.18)),14.0)*0.6;
+  col+=uWhite*(vec3(1.0,0.88,0.62)*g*0.9+vec3(1.0,0.82,0.5)*rays*exp(-rl*1.6)*0.75);
+  col=(col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+  col=pow(clamp(col,0.0,1.0),vec3(0.4545));
+  col*=1.0-0.35*dot(uv,uv);
+  col+=(hash(vec3(gl_FragCoord.xy,uTime*60.0))-0.5)*0.03;
+  col+=uFlash;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const glc=$('gl'),fxc=$('fx'),rgc=$('rg'),fb=$('fb');
+let gl=null,prog,U={},hasGL=false,Q=1;
+try{
+  gl=glc.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'})||glc.getContext('experimental-webgl');
+  if(gl){
+    const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh;};
+    prog=gl.createProgram();gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+    const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    ['uRes','uMouse','uTime','uDist','uPhase','uOutPh','uDir','uWhite','uFlash','uShake','uSky'].forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+    hasGL=true;
+  }
+}catch(e){console.warn('WebGL fallback:',e);hasGL=false;}
+if(!hasGL){glc.style.display='none';fb.style.display='block';}
+
+let W=innerWidth,H=innerHeight,DPR=1,fxx,rgx;
+function resize(){
+  W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);
+  const gd=Math.min(devicePixelRatio||1,1.5)*Q;
+  glc.width=Math.max(2,Math.floor(W*gd));glc.height=Math.max(2,Math.floor(H*gd));
+  if(hasGL)gl.viewport(0,0,glc.width,glc.height);
+  [fxc,rgc].forEach(c=>{c.width=Math.floor(W*DPR);c.height=Math.floor(H*DPR);});
+  fxx=fxc.getContext('2d');rgx=rgc.getContext('2d');
+  fxx.setTransform(DPR,0,0,DPR,0,0);rgx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize);resize();
+
+/* =====================================================================
+   ЧАСТИЦЫ (2D canvas, additive, со шлейфами)
+   ===================================================================== */
+const mobile=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)||Math.min(innerWidth,innerHeight)<600;
+const N=mobile?3200:7500;
+const PX=new Float32Array(N),PY=new Float32Array(N),PVX=new Float32Array(N),PVY=new Float32Array(N),
+      PL=new Float32Array(N),PM=new Float32Array(N),PS=new Float32Array(N),PC=new Uint8Array(N),PMODE=new Uint8Array(N);
+const COLS=['255,255,255','255,226,160','255,150,60','150,200,255','255,214,120','255,236,250'];
+let head=0,alive=0;
+const FX={drag:.7,trail:.2,attract:0,attractOn:false,spawnRate:0,outflow:false,swirl:0};
+function spawn(x,y,vx,vy,life,size,col,mode){
+  const i=head;head=(head+1)%N;
+  PX[i]=x;PY[i]=y;PVX[i]=vx;PVY[i]=vy;PL[i]=life;PM[i]=life;PS[i]=size;PC[i]=col;PMODE[i]=mode;
+}
+function explode(){
+  const cx=W/2,cy=H/2,md=Math.max(W,H);
+  for(let i=0;i<N;i++){
+    const a=rand(Math.PI*2),sp=Math.pow(Math.random(),.55)*md*.95*(.25+Math.random());
+    const tang=rand(-.12,.12);
+    const vx=Math.cos(a)*sp-Math.sin(a)*sp*tang,vy=Math.sin(a)*sp+Math.cos(a)*sp*tang;
+    const k=sp/(md*.95);const c=k>.65?(Math.random()<.5?0:3):k>.3?(Math.random()<.6?1:0):2;
+    spawn(cx+Math.cos(a)*rand(8),cy+Math.sin(a)*rand(8),vx,vy,rand(2.6,6.5),rand(1,2.8),c,0);
+  }
+  FX.drag=.75;FX.trail=.22;
+}
+function spawnAttract(n){
+  const cx=W/2,cy=H/2,md=Math.hypot(W,H)/2;
+  for(let i=0;i<n;i++){
+    const a=rand(Math.PI*2),r=rand(md*.25,md*1.0);
+    spawn(cx+Math.cos(a)*r,cy+Math.sin(a)*r,-Math.sin(a)*rand(20,120),Math.cos(a)*rand(20,120),rand(3,6),rand(.9,2.4),Math.random()<.5?0:(Math.random()<.5?1:3),1);
+  }
+}
+function whiteBurst(){
+  const cx=W/2,cy=H/2,md=Math.max(W,H);
+  for(let i=0;i<N;i++) if(PL[i]>0){PMODE[i]=0;const a=Math.atan2(PY[i]-cy,PX[i]-cx),sp=rand(md*.2,md*1.1);PVX[i]=Math.cos(a)*sp;PVY[i]=Math.sin(a)*sp;PL[i]=PM[i]=rand(2.5,5);PC[i]=Math.random()<.5?4:5;}
+  for(let k=0;k<(mobile?1200:2800);k++){const a=rand(Math.PI*2),sp=Math.pow(Math.random(),.6)*md*1.1;
+    spawn(cx,cy,Math.cos(a)*sp,Math.sin(a)*sp,rand(2.5,6),rand(1,3),[0,4,5,4][k&3],0);}
+  FX.drag=.55;FX.trail=.16;
+}
+function updateParticles(dt){
+  const cx=W/2,cy=H/2;alive=0;
+  if(FX.attractOn&&FX.spawnRate>0)spawnAttract(Math.floor(FX.spawnRate*dt+Math.random()));
+  if(FX.outflow){const n=Math.floor((mobile?260:620)*dt+Math.random());
+    for(let k=0;k<n;k++){const a=rand(Math.PI*2),sp=rand(120,520)*(Math.min(W,H)/800+.4);
+      spawn(cx+Math.cos(a)*8,cy+Math.sin(a)*8,Math.cos(a)*sp,Math.sin(a)*sp,rand(2,4.5),rand(.8,2.2),[0,4,5,4,1][k%5],0);}}
+  const dg=Math.exp(-FX.drag*dt);
+  for(let i=0;i<N;i++){
+    if(PL[i]<=0)continue;
+    PL[i]-=dt;
+    if(PMODE[i]===1){
+      const dx=cx-PX[i],dy=cy-PY[i],d=Math.sqrt(dx*dx+dy*dy)+1;
+      const k=FX.attract;
+      PVX[i]+=(dx*k*.9+(-dy)*k*.7)*dt;PVY[i]+=(dy*k*.9+dx*k*.7)*dt;
+      const dd=Math.exp(-.7*dt);PVX[i]*=dd;PVY[i]*=dd;
+      if(d<16){PL[i]=0;continue;}
+    }else{PVX[i]*=dg;PVY[i]*=dg;}
+    PX[i]+=PVX[i]*dt;PY[i]+=PVY[i]*dt;
+    if(PL[i]>0)alive++;
+  }
+}
+function drawParticles(){
+  const c=fxx;
+  if(alive===0){c.clearRect(0,0,W,H);return;}
+  c.globalCompositeOperation='destination-out';c.fillStyle='rgba(0,0,0,'+FX.trail+')';c.fillRect(0,0,W,H);
+  c.globalCompositeOperation='lighter';
+  for(let b=0;b<COLS.length;b++){
+    const col=COLS[b];
+    for(let i=0;i<N;i++){
+      if(PL[i]<=0||PC[i]!==b)continue;
+      const f=PL[i]/PM[i];const a=Math.min(1,f*2.2)*(PMODE[i]===1?.85:1);
+      c.fillStyle='rgba('+col+','+a.toFixed(2)+')';
+      const s=PS[i];c.fillRect(PX[i]-s/2,PY[i]-s/2,s,s);
+    }
+  }
+}
+
+/* ---------- оверлей: ядро, ударная волна, уроборос, пыль ---------- */
+const R={core:0,shock:0,shockA:0,ringA:0,dustA:0,egg:0};
+const dust=Array.from({length:mobile?110:240},()=>({x:Math.random(),y:Math.random(),r:rand(.4,1.5),ph:rand(6.28),sp:rand(.002,.01)}));
+function rune(c,seed,sz){
+  let s=seed*9301+49297;const r=()=>{s=(s*9301+49297)%233280;return s/233280;};
+  c.beginPath();c.moveTo(0,-sz);c.lineTo(0,sz);
+  const n=2+Math.floor(r()*2);
+  for(let i=0;i<n;i++){const y=-sz+r()*sz*1.6,dx=(r()<.5?-1:1)*sz*(.4+r()*.5);c.moveTo(0,y);c.lineTo(dx,y+(r()<.5?-1:1)*sz*.55);}
+  c.stroke();
+}
+function drawOuroboros(t,a){
+  const c=rgx,cx=W/2,cy=H/2,Rr=Math.min(W,H)*(W<H?.36:.31);
+  c.save();c.globalCompositeOperation='lighter';c.globalAlpha=a;c.translate(cx,cy);
+  // мировое яйцо
+  c.save();c.scale(.66,.9);c.strokeStyle='rgba(255,240,210,'+(.12+.06*Math.sin(t*1.3))+')';c.lineWidth=1.2;
+  for(let k=0;k<3;k++){c.beginPath();c.arc(0,0,Rr*(.82+k*.07),0,Math.PI*2);c.stroke();}c.restore();
+  // змей
+  const SEG=200,start=t*.09,span=Math.PI*2*.962;
+  for(let i=0;i<SEG;i++){
+    const u=i/SEG,an=start+u*span,w=2+10*Math.pow(u,1.35);
+    const x=Math.cos(an)*Rr,y=Math.sin(an)*Rr;
+    const l=58+14*Math.sin(u*38-t*2.2);
+    c.fillStyle='hsla('+(40+14*Math.sin(u*9+t))+',95%,'+l+'%,'+(.55+.4*u)+')';
+    c.beginPath();c.arc(x,y,w,0,Math.PI*2);c.fill();
+    if(i%4===0){c.strokeStyle='rgba(120,60,0,.35)';c.lineWidth=1;c.beginPath();c.arc(x,y,w*.8,an+1.2,an+1.9);c.stroke();}
+  }
+  const ha=start+span,hx=Math.cos(ha)*Rr,hy=Math.sin(ha)*Rr;
+  c.save();c.translate(hx,hy);c.rotate(ha+Math.PI/2);
+  c.fillStyle='rgba(255,226,150,.95)';c.beginPath();c.ellipse(0,-6,15,21,0,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,1)';c.beginPath();c.arc(7,-10,2.6,0,Math.PI*2);c.fill();c.restore();
+  // руны
+  c.lineWidth=1.4;
+  for(let ring=0;ring<2;ring++){
+    const rad=Rr*(ring?1.3:1.17),cnt=ring?44:32,dir=ring?1:-1;
+    c.strokeStyle='rgba(255,236,190,.28)';c.lineWidth=1;c.beginPath();c.arc(0,0,rad*(ring?1.045:.955),0,Math.PI*2);c.stroke();
+    for(let k=0;k<cnt;k++){
+      const an=dir*t*.05+k*Math.PI*2/cnt;
+      c.save();c.rotate(an);c.translate(0,-rad);
+      c.strokeStyle='rgba(255,238,200,'+(.45+.45*Math.sin(t*2+k*1.7))+')';c.lineWidth=1.4;rune(c,k*7+ring*131,7);c.restore();
+    }
+  }
+  c.restore();
+}
+function drawOverlay(t,dt){
+  const c=rgx;c.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+  if(R.core>0){
+    const rad=14+R.core*46,g=c.createRadialGradient(cx,cy,0,cx,cy,rad*3);
+    g.addColorStop(0,'rgba(255,255,255,'+Math.min(1,R.core*1.3)+')');g.addColorStop(.25,'rgba(255,190,110,'+R.core*.8+')');g.addColorStop(1,'rgba(255,100,20,0)');
+    c.globalCompositeOperation='lighter';c.fillStyle=g;c.beginPath();c.arc(cx,cy,rad*3,0,Math.PI*2);c.fill();
+  }
+  if(R.shockA>0.01){
+    c.globalCompositeOperation='lighter';
+    const r=R.shock;
+    const g=c.createRadialGradient(cx,cy,Math.max(0,r-90),cx,cy,r+6);
+    g.addColorStop(0,'rgba(255,200,140,0)');g.addColorStop(.85,'rgba(255,215,170,'+(.22*R.shockA)+')');g.addColorStop(1,'rgba(255,255,255,'+(.9*R.shockA)+')');
+    c.fillStyle=g;c.beginPath();c.arc(cx,cy,r+6,0,Math.PI*2);c.fill();
+  }
+  if(R.dustA>0.01){
+    c.globalCompositeOperation='lighter';
+    const white=S.white>.5;
+    for(const d of dust){
+      d.y-=d.sp*dt*(white?.5:1);d.x+=Math.sin(t*.2+d.ph)*.00008;if(d.y<-.02)d.y=1.02;
+      const a=R.dustA*(.25+.75*(.5+.5*Math.sin(t*1.5+d.ph)))*.8;
+      c.fillStyle=white?'rgba(255,230,170,'+a+')':'rgba(190,215,255,'+a+')';
+      c.fillRect(d.x*W,d.y*H,d.r,d.r);
+    }
+  }
+  if(R.ringA>0.01)drawOuroboros(t,R.ringA);
+}
+
+/* =====================================================================
+   ТИТУЛ, ВВОД КОДА, СЛАЙДЫ, HUD
+   ===================================================================== */
+const title=$('title'),hint=$('hint'),inp=$('code'),gate=$('gate'),deck=$('deck'),slidesEl=$('slides'),
+      hud=$('hud'),dotsEl=$('dots'),finalEl=$('final'),sndBtn=$('snd'),againBtn=$('again'),rewOv=$('rewOverlay');
+'Bienvenue'.split('').forEach((ch,i,a)=>{
+  const s=document.createElement('span');s.textContent=ch;
+  s.style.animationDelay=(i*.14)+'s,'+(2.2+i*.22)+'s';
+  s.style.setProperty('--rot',((i-(a.length-1)/2)*0.9)+'deg');title.appendChild(s);
+});
+inp.maxLength=ACCESS_CODE.length;
+
+/* =====================================================================
+   КОНТЕНТ СЛАЙДОВ: таблица, карта с городами, калькуляторы (из «Tocopy»)
+   ===================================================================== */
+function initContent(){
+  const qs=(s,r=document)=>r.querySelector(s), qsa=(s,r=document)=>[...r.querySelectorAll(s)];
+  const num=n=>Math.round(n).toLocaleString('ru-RU').replace(/ /g,' ');
+  const fmt=n=>num(n)+' ₸';
+  const byId=id=>PRODUCTS.find(p=>p.id===id);
+  const costOf=p=>p.inv+DELIV[p.kind];
+  function setInfo(s){
+    const it=s.items.map(byId);
+    const inv=it.reduce((a,p)=>a+p.inv,0), del=it.reduce((a,p)=>a+DELIV[p.kind],0), single=it.reduce((a,p)=>a+p.sell,0);
+    return {inv,del,cost:inv+del,price:s.price,single,profit:s.price-(inv+del)};
+  }
+
+  /* ---------- таблица товаров ---------- */
+  (function(){
+    let i=0;
+    let h='<thead><tr><th>Тауар</th><th>Накладной</th><th>Жеткізу</th><th>Өзіндік құн</th><th>Үстеме</th><th>Сату бағасы</th></tr></thead><tbody>';
+    const d=()=>(0.9+i*0.1).toFixed(2);
+    PRODUCTS.forEach(p=>{
+      const c=costOf(p), m=p.sell-c;
+      h+=`<tr class="rvf" style="--d:${d()}s"><td>${p.name}<span class="sz">${p.size}</span></td><td>${fmt(p.inv)}</td><td>${fmt(DELIV[p.kind])}</td><td>${fmt(c)}</td><td><b class="pos">+${fmt(m)}</b> <small>(${Math.round(m/c*100)}%)</small></td><td class="sell">${fmt(p.sell)}</td></tr>`; i++;
+    });
+    h+=`<tr class="sethead rvf" style="--d:${d()}s"><td colspan="6">Жинақтар: креатин + протеин</td></tr>`; i++;
+    SETS.forEach(s=>{
+      const q=setInfo(s);
+      h+=`<tr class="setrow rvf" style="--d:${d()}s"><td>${s.name}</td><td>${fmt(q.inv)}</td><td>${fmt(q.del)}</td><td>${fmt(q.cost)}</td><td><b class="pos">+${fmt(q.profit)}</b> <small>(${Math.round(q.profit/q.cost*100)}%)</small></td><td class="sell">${fmt(q.price)}<br><small style="font-weight:300">жеке-жеке ${fmt(q.single)}</small></td></tr>`; i++;
+    });
+    qs('#ptable').innerHTML=h+'</tbody>';
+  })();
+
+  /* ---------- основа карты ---------- */
+  const mp=(lon,lat)=>[(lon-60)*12,(56-lat)*12];
+  const pathD=c=>'M'+c.map(a=>mp(a[0],a[1]).map(v=>v.toFixed(1)).join(' ')).join('L')+'Z';
+  const CHINA=[[73.5,39.5],[75,37],[78,35.5],[79,32.5],[81,30],[85,28.2],[88,27.8],[92,27.8],[97,28.3],[98.5,25],[101,21.5],[104,22.8],[108,21.5],[110,20.3],[112,22],[116,23],[119,25.5],[121.5,28],[122,31],[120.5,35],[122.5,37],[119,38],[118,39],[121,40.5],[124,40],[126,41.5],[130,42.5],[131,45],[134,48],[131,47.7],[127,50],[121,53.3],[118,49.8],[116,47.8],[119.5,46.7],[115,45.5],[111,43.8],[105,41.5],[97,42.7],[95,44.5],[90.5,47.5],[87.5,49],[85,47],[82,45.5],[80,44.5],[80.5,42.5],[77,41],[74,40.5]];
+  const INDIA=[[68.5,23.5],[70.5,20.8],[72.8,19],[73.5,16],[74.8,13],[76.5,9],[77.5,8.1],[78.5,9.3],[80,12],[80.3,15.5],[82,17],[85,19.5],[87,21.5],[89,22],[89,26.3],[92,26.5],[95,27.5],[97,28],[94,29],[92,27.8],[88,27.8],[85,28.2],[81,30],[79,32.5],[77,35.5],[75.5,36],[74,34.5],[74.5,32.5],[72,31.5],[71,28],[70,26],[69,24.5]];
+  const KZ=[[46.5,48.5],[50,51],[55,50.7],[61,51],[61,53],[68,55],[73,54],[77,53.3],[81,50.7],[84,50.5],[87,49],[85,47],[82,45.5],[80,44.5],[80.5,42.5],[75,42.8],[70,42],[66,43],[62,43.5],[58,45.5],[56,44.5],[55,41.5],[52.5,42],[50,44.5],[49,46.5]];
+  const LAND=[[60,56],[135,56],[135,45],[131,42.2],[129.5,35.2],[126.3,34.6],[125.2,37.8],[124.5,39.8],[121.2,40.5],[118,39],[119,38],[122.5,37],[120.5,35],[122,31],[121.5,28],[119,25.5],[116,23],[112,22],[110,20.3],[108,21.5],[106.5,19.5],[108.8,15.5],[109.3,12],[107,10.5],[105,8.7],[104.8,10.2],[103,10.5],[102,12.3],[100.6,13.5],[100,12],[99.3,10],[100.4,7.5],[100.2,5],[98.2,7.8],[98.6,10.5],[97.7,16.5],[94.5,16],[94.3,18.5],[92.5,21],[91.5,22.5],[89.5,22],[87,21.5],[85,19.5],[82,17],[80.3,15.5],[80,12],[78.5,9.3],[77.5,8.1],[76.5,9],[74.8,13],[73.5,16],[72.8,19],[70.5,20.8],[68.5,23.5],[66.5,25.3],[62,25.2],[60,25.2]];
+  const MCOL={china:'#ff7a55',india:'#ffd27a',kz:'#9fd0ff'};
+  const POLY={china:CHINA,india:INDIA,kz:KZ};
+  const PAT={land:'#ffe9c8',china:'#ff7a55',india:'#ffd27a',kz:'#9fd0ff'};
+
+  function defs(s){
+    let h='<defs>';
+    h+=`<radialGradient id="sea${s}" cx=".5" cy=".4" r=".85"><stop offset="0" stop-color="#2a1608" stop-opacity=".55"/><stop offset=".6" stop-color="#0a0c1c" stop-opacity=".45"/><stop offset="1" stop-color="#000" stop-opacity=".85"/></radialGradient>`;
+    h+=`<linearGradient id="scg${s}" x1="0" x2="1"><stop offset="0" stop-color="#ffd9a0" stop-opacity="0"/><stop offset=".5" stop-color="#ffd9a0" stop-opacity=".12"/><stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/></linearGradient>`;
+    h+=`<radialGradient id="vig${s}" cx=".5" cy=".5" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".7"/></radialGradient>`;
+    h+=`<filter id="glw${s}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+    Object.entries(PAT).forEach(([k,c])=>{
+      h+=`<pattern id="pt-${k}${s}" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="${k==='land'?1:1.25}" fill="${c}" fill-opacity="${k==='land'?.22:.7}"/><animateTransform attributeName="patternTransform" type="translate" from="0 0" to="9 9" dur="8s" repeatCount="indefinite"/></pattern>`;
+    });
+    return h+'</defs>';
+  }
+  function base(s){
+    let h=defs(s)+`<rect width="900" height="612" fill="url(#sea${s})"/>`;
+    for(let lon=60;lon<=130;lon+=10){const x=(lon-60)*12;h+=`<line class="grat" x1="${x}" y1="0" x2="${x}" y2="612"/><text class="gl" x="${x+3}" y="606">${lon}°</text>`}
+    for(let lat=10;lat<=50;lat+=10){const y=(56-lat)*12;h+=`<line class="grat" x1="0" y1="${y}" x2="900" y2="${y}"/><text class="gl" x="4" y="${y-3}">${lat}°</text>`}
+    h+=`<path d="${pathD(LAND)}" fill="url(#pt-land${s})"/>`;
+    const t=(lon,lat,txt)=>{const[a,b]=mp(lon,lat);return `<text class="nb" x="${a}" y="${b}">${txt}</text>`};
+    h+=`<rect width="900" height="612" fill="url(#vig${s})" style="pointer-events:none"/>`;
+    h+=t(95,53,'РЕСЕЙ')+t(103,47.5,'МОҢҒОЛИЯ')+t(66,30,'ПӘКІСТАН')+t(64,40,'ӨЗБЕКСТАН')+t(116,12,'ОҢТҮСТІК ҚЫТАЙ ТЕҢІЗІ')+t(82,8.5,'ҮНДІ ТЕҢІЗІ');
+    return h;
+  }
+  function country(key,pat,color,s,on){
+    const d=pathD(POLY[key]);
+    return `<g class="ctry ${on?'on':''}" data-k="${key}"><path class="cfill" d="${d}" fill="${color}" fill-opacity=".07"/><path d="${d}" fill="url(#pt-${pat}${s})"/><path class="coutline" pathLength="1" d="${d}" fill="none" stroke="${color}" stroke-width="1.5" filter="url(#glw${s})"/></g>`;
+  }
+  function rlabel(lon,lat,txt){const[a,b]=mp(lon,lat);return `<text class="rl" x="${a}" y="${b}">${txt}</text>`}
+  function marker(lon,lat,label,color,side,attrs){
+    const[x,y]=mp(lon,lat), w=label.length*6.5+20, lx=side==='l'?x-13-w:x+13;
+    return `<g class="mk" ${attrs||''} style="--c:${color}"><circle class="orbit" cx="${x}" cy="${y}" r="11"/><circle class="ring" cx="${x}" cy="${y}" r="6"/><circle class="ring r2" cx="${x}" cy="${y}" r="6"/><circle class="core" cx="${x}" cy="${y}" r="4"/><g class="lab"><rect x="${lx}" y="${y-11}" width="${w}" height="22" rx="11"/><text x="${lx+w/2}" y="${y+4}" text-anchor="middle">${label}</text></g></g>`;
+  }
+  function arcPath(a,b,lift){const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dist=Math.hypot(b[0]-a[0],b[1]-a[1]);return {d:`M${a[0]} ${a[1]} Q${mx} ${my-dist*lift} ${b[0]} ${b[1]}`,mid:[.25*a[0]+.5*mx+.25*b[0],.25*a[1]+.5*(my-dist*lift)+.25*b[1]]}}
+  function arc(a,b,lift,color,dur){
+    const r=arcPath(a,b,lift);
+    return `<path class="flow" style="--c:${color}" d="${r.d}"/><circle r="3" fill="#fff2de" filter="url(#glw1)"><animateMotion dur="${dur}s" repeatCount="indefinite" path="${r.d}"/></circle>`;
+  }
+  function scan(s){return `<rect class="scan" x="0" y="0" width="140" height="612" fill="url(#scg${s})" style="pointer-events:none"/>`}
+
+  /* ---------- карта: города ---------- */
+  const SRC={
+   china:{name:'Қытай',role:'Гуанчжоу, Сучжоу, Сиань, Шэньчжэнь',
+    points:['Осы қалаларда ресми өндіріс орындары мен жеткізушілер бар.','Тауарды тек сертификаты тексерілген жеткізушіден аламыз.','Зауыт көп, бәсеке жоғары, сондықтан баға төмен.'],
+    warn:'Әр партиямен бірге сертификат пен талдау қағазын сұраймыз.',
+    cities:[{n:'Гуанчжоу',lon:113.3,lat:23.1,side:'l',t:'Қытайдағы ресми жеткізушілердің бірі осы қалада.'},
+            {n:'Сучжоу',lon:120.6,lat:31.3,side:'r',t:'Қытайдағы екінші жеткізу орталығы.'},
+            {n:'Сиань',lon:108.9,lat:34.3,side:'l',t:'Қытайдың орталық бөлігіндегі жеткізу орталығы.'},
+            {n:'Шэньчжэнь',lon:114.1,lat:22.5,side:'r',t:'Қытайдың оңтүстігіндегі жеткізу орталығы.'}]},
+   india:{name:'Үндістан',role:'Дели, Нью-Дели, Мадхья-Прадеш, Гуджарат',
+    points:['Дели, Нью-Дели, Мадхья-Прадеш және Гуджаратта ресми өндіріс орындары бар.','Жеткізу: 1 жинаққа 700–900 ₸. Тек 40 жинаққа есептелген.','Еңбек ақы өте төмен, сондықтан өзіндік құн аз.'],
+    warn:'Үндістан сүт өнімдерін өндіруде әлемдегі ең ірі елдердің бірі.',
+    cities:[{n:'Дели · Нью-Дели',lon:77.2,lat:28.6,side:'l',t:'Үндістандағы ресми жеткізушілер осы екі қалада орналасқан.'},
+            {n:'Мадхья-Прадеш',lon:78.6,lat:23.5,side:'r',t:'Үндістанның орталық штаты.'},
+            {n:'Гуджарат',lon:71.6,lat:22.6,side:'l',t:'Үндістанның батыс штаты.'}]},
+   kz:{name:'Қазақстан',role:'Біздің нарық',
+    points:['Негізгі қалалар: Алматы және Астана.','Сату: Kaspi, Instagram, спортзалдар.','Әр тауар сертификатымен сатылады.'],
+    warn:'Тауар Қазақстанға ЕАЭО ережесімен кедендік рәсімдеуден өтеді.',
+    cities:[{n:'Алматы',lon:76.9,lat:43.25,side:'r',t:'Негізгі қойма мен сату нүктесі.'},{n:'Астана',lon:71.4,lat:51.2,side:'r',t:'Екінші сату нүктесі.'}]}
+  };
+  function panel1(k,ci){
+    const d=SRC[k],c=ci!=null?d.cities[ci]:null;
+    qs('#panel1').innerHTML=`<h3>${d.name}</h3><div class="role">${d.role}</div>`+
+     (c?`<div class="warn neutral" style="margin:0 0 12px"><b style="color:#ffd9a0">${c.n}</b><br>${c.t}</div>`:'')+
+     `<ul>${d.points.map(x=>`<li>${x}</li>`).join('')}</ul><div class="warn">${d.warn}</div>`;
+  }
+  (function(){
+    const alm=mp(76.9,43.25);
+    let h=base(1)+country('china','china',MCOL.china,1)+country('india','india',MCOL.india,1)+country('kz','kz',MCOL.kz,1)+rlabel(102,34,'ҚЫТАЙ')+rlabel(79,20,'ҮНДІСТАН')+rlabel(67,48.5,'ҚАЗАҚСТАН');
+    SRC.china.cities.forEach(c=>h+=arc(mp(c.lon,c.lat),alm,.28,MCOL.china,3.4));
+    SRC.india.cities.forEach(c=>h+=arc(mp(c.lon,c.lat),alm,.18,MCOL.india,2.6));
+    Object.keys(SRC).forEach(k=>SRC[k].cities.forEach((c,i)=>h+=marker(c.lon,c.lat,c.n,MCOL[k],c.side,`data-k="${k}" data-c="${i}"`)));
+    h+=scan(1);
+    qs('#map1').innerHTML=h;
+    qs('#panel1').innerHTML=`<h3>Картаны басыңыз</h3><div class="role">Ел немесе қала белгісі</div><ul><li>Қызыл — Қытай</li><li>Сары — Үндістан</li><li>Көк — Қазақстан, біздің нарық</li></ul><p style="color:rgba(235,240,255,.6);font-size:14px;margin-top:12px;line-height:1.6">Сызықтар тауардың Алматыға қарай жүретін бағытын көрсетеді.</p>`;
+    qs('#map1').addEventListener('click',e=>{
+      const t=e.target.closest('[data-k]');if(!t)return;
+      const k=t.dataset.k,ci=t.dataset.c!=null?+t.dataset.c:null;
+      qsa('#map1 .ctry').forEach(r=>r.classList.toggle('on',r.dataset.k===k));
+      qsa('#map1 .mk').forEach(m=>m.classList.toggle('on',m.dataset.k===k&&+m.dataset.c===ci));
+      panel1(k,ci);
+    });
+    if(qs('#map1').pauseAnimations)qs('#map1').pauseAnimations();
+  })();
+
+  /* ---------- калькулятор шығындар (6-слайд) ---------- */
+  (function(){
+    const CN=setInfo(SETS[0]).inv, IN=byId('a1').inv+byId('d1').inv+byId('b1').inv+byId('m4').inv;
+    const fld=(id,t,sm,v)=>`<div class="field"><label>${t}<small>${sm}</small></label><div class="stepper"><button data-q="${id}" data-d="-1">−</button><input type="number" id="${id}" min="0" value="${v}"><button data-q="${id}" data-d="1">+</button></div></div>`;
+    const sl=(id,t,a,b,v)=>`<div class="slider"><label><span>${t}</span><b id="v${id}"></b></label><input type="range" id="${id}" min="${a}" max="${b}" step="50" value="${v}"></div>`;
+    qs('#calc2').innerHTML=`<div class="ic rv l">${fld('n1','Қытайдан: «Диас качок» жинағы','накладной '+fmt(CN)+' · 1 жинаққа',20)}${sl('d1','Жеткізу, 1 жинаққа (Қытай)',1000,1400,1200)}${fld('n2','Үндістаннан: ашваганда + Д3+К2 + BCAA + аминқышқыл 400 г','накладной '+fmt(IN)+' · 1 жинаққа',20)}${sl('d2','Жеткізу, 1 жинаққа (Үндістан)',700,900,800)}</div><div class="ic rv r" id="cres2"></div>`;
+    function upd(){
+      const n1=Math.max(0,+qs('#n1').value||0),n2=Math.max(0,+qs('#n2').value||0),d1=+qs('#d1').value,d2=+qs('#d2').value;
+      qs('#vd1').textContent=fmt(d1);qs('#vd2').textContent=fmt(d2);
+      const g1=n1*CN,g2=n2*IN,o1=n1*d1,o2=n2*d2,goods=g1+g2,ord=o1+o2;
+      qs('#cres2').innerHTML=`<h3 style="margin-bottom:6px">Шығын · ${n1+n2} жинақ</h3>
+        <div class="res"><span>Қытай · тауар (${n1} жинақ)</span><b>${fmt(g1)}</b></div>
+        <div class="res"><span>Қытай · тапсырыс (жеткізу)</span><b>${fmt(o1)}</b></div>
+        <div class="res"><span>Үндістан · тауар (${n2} жинақ)</span><b>${fmt(g2)}</b></div>
+        <div class="res"><span>Үндістан · тапсырыс (жеткізу)</span><b>${fmt(o2)}</b></div>
+        <div class="res"><span>Тауарға барлығы</span><b>${fmt(goods)}</b></div>
+        <div class="res"><span>Тапсырысқа барлығы</span><b>${fmt(ord)}</b></div>
+        <div class="res tot"><span>Барлық шығын</span><b>${fmt(goods+ord)}</b></div>`;
+    }
+    qs('#calc2').addEventListener('input',upd);
+    qs('#calc2').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const i=qs('#'+b.dataset.q);i.value=Math.max(0,(+i.value||0)+(+b.dataset.d));upd()});
+    upd();
+  })();
+
+  /* ---------- калькулятор (8-слайд) ---------- */
+  (function(){
+    const SI=setInfo(SETS[0]);
+    qs('#calc').innerHTML=`
+    <div class="ic rv l">
+      <div class="field"><label>${SETS[0].name}<small>накладной ${fmt(SI.inv)} · сату ${fmt(SI.price)}</small></label><div class="stepper"><button data-q="q1" data-d="-1">−</button><input type="number" id="q1" min="0" value="6"><button data-q="q1" data-d="1">+</button></div></div>
+      <div class="slider"><label><span>Жеткізу, 1 жинаққа</span><b id="vd"></b></label><input type="range" id="dd" min="1000" max="2000" step="50" value="${SI.del}"></div>
+      <div class="slider"><label><span>Қанша бөлігі сатылды</span><b id="vs"></b></label><input type="range" id="ds" min="10" max="100" step="5" value="100"></div>
+      <div class="pricein"><label>${SETS[0].name} сату бағасы</label><input type="number" id="pr1" value="${SI.price}" step="500"></div>
+    </div>
+    <div class="ic rv r" id="cres"></div>`;
+    function upd(){
+      const n=Math.max(0,+qs('#q1').value||0),d=+qs('#dd').value,sold=+qs('#ds').value/100,p=+qs('#pr1').value||0;
+      qs('#vd').textContent=fmt(d);qs('#vs').textContent=Math.round(sold*100)+'%';
+      const inv=n*SI.inv,del=n*d,total=inv+del,full=n*p,rev=full*sold,profit=rev-total,mg=rev?profit/rev*100:0;
+      const be=p?Math.ceil(total/p):0;
+      const costPart=rev?Math.min(100,total/rev*100):100;
+      const note=n===BASE_QTY?'40 жинақ үшін жеткізу бағасы нақты.':`Жеткізу бағасы (700–1 400 ₸) тек 40 жинаққа нақты. ${n} жинаққа бағаны қайта сұрау керек.`;
+      qs('#cres').innerHTML=`<h3 style="margin-bottom:6px">Нәтиже · ${n} жинақ</h3>
+        <div class="res"><span>Накладной (тауар)</span><b>${fmt(inv)}</b></div>
+        <div class="res"><span>Жеткізу</span><b>${fmt(del)}</b></div>
+        <div class="res"><span>Барлық шығын</span><b>${fmt(total)}</b></div>
+        <div class="res"><span>Сатудан түскен ақша</span><b>${fmt(rev)}</b></div>
+        <div class="res"><span>Шығынды өтеу үшін сату керек</span><b>${be} жинақ</b></div>
+        <div class="stack"><i style="width:${costPart}%;background:#ff7a5c"></i><i style="width:${100-costPart}%;background:#ffd9a0"></i></div>
+        <div class="res tot"><span>Таза пайда<br><small>маржа ${Math.round(mg)}%</small></span><b style="${profit<0?'color:#ff7a5c':''}">${fmt(profit)}</b></div>
+        <div class="warn ${n===BASE_QTY?'neutral':''}">${note} Жарнама мен курьер есепке алынбаған.</div>`;
+    }
+    qs('#calc').addEventListener('input',upd);
+    qs('#calc').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const i=qs('#'+b.dataset.q);i.value=Math.max(0,(+i.value||0)+(+b.dataset.d));upd()});
+    upd();
+  })();
+
+  /* ---------- кнопка «Бастау» и звук кликов по карте / калькуляторам ---------- */
+  qsa('[data-next]').forEach(b=>b.addEventListener('click',()=>{if(state==='deck'){A.click();goTo(cur+1);}}));
+  slidesEl.addEventListener('pointerdown',e=>{if(e.target.closest('.mk,.ctry,.stepper button'))A.click();});
+
+  /* ---------- задержки появления внутренних блоков ---------- */
+  qsa('.slide').forEach(sl=>{
+    [...sl.querySelector('.card').children].forEach((wrap,k)=>{
+      const items=wrap.matches('.rv,.rvf')?[wrap]:qsa('.rv,.rvf',wrap);
+      let j=0;items.forEach(el=>{if(!el.style.getPropertyValue('--d')){el.style.setProperty('--d',(0.5+k*0.08+j*0.1).toFixed(2)+'s');j++;}});
+    });
+  });
+}
+
+const rewSvg='<svg viewBox="0 0 24 24"><path d="M11.5 6 4.5 12l7 6zM19.5 6l-7 6 7 6z"/></svg>';
+SLIDES.forEach((s,i)=>{
+  const sec=document.createElement('section');sec.className='slide';
+  const last=i===SLIDES.length-1;
+  sec.innerHTML='<div class="card'+(s.wide?' wide':'')+'"><div class="num">'+String(i+1).padStart(2,'0')+'</div>'+(s.kicker?'<div class="kicker">'+s.kicker+'</div>':'')+'<h2>'+s.title+'</h2>'+(s.text?'<p'+(s.lead?' class="lead"':'')+'>'+s.text+'</p>':'')+(s.html||'')+
+    (last?'<div class="rewwrap"><button class="orb big pulse" id="rewBtn" aria-label="Перемотка">'+rewSvg+'</button><div class="rewcap">Перемотка времени</div></div>':'')+'</div>';
+  [...sec.querySelector('.card').children].forEach((el,k)=>el.style.setProperty('--i',k));
+  slidesEl.appendChild(sec);
+  const d=document.createElement('div');d.className='dot';d.onclick=()=>{if(state==='deck'){A.click();goTo(i);}};dotsEl.appendChild(d);
+});
+const slideEls=[...slidesEl.children],dotEls=[...dotsEl.children];
+initContent();
+let lastTop=0;
+function setSlide(n){
+  if(slideEls[n]&&n!==cur){slideEls[n].scrollTop=0;lastTop=0;}
+  slideEls.forEach((s,i)=>{s.classList.toggle('active',i===n);s.classList.toggle('before',i<n);s.classList.toggle('after',i>n);
+    const sv=s.querySelector('svg');if(sv&&sv.pauseAnimations){i===n?sv.unpauseAnimations():sv.pauseAnimations();}});
+  dotEls.forEach((d,i)=>d.classList.toggle('on',i===n));cur=n;
+}
+let navLock=0;
+function goTo(n){
+  if(state!=='deck'||n<0||n>=SLIDES.length||n===cur)return;
+  const t=performance.now();if(t-navLock<500)return;navLock=t;
+  A.swish();setSlide(n);
+}
+const next=()=>goTo(cur+1),prev=()=>goTo(cur-1);
+$('next').onclick=()=>{A.click();next();};$('prev').onclick=()=>{A.click();prev();};
+addEventListener('keydown',e=>{
+  if(state==='deck'){
+    if(e.target&&e.target.tagName==='INPUT')return;
+    if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();next();}
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  }else if(state==='input'&&document.activeElement!==inp){inp.focus();}
+});
+let wheelT=0,lastWheel=0,gScrolled=false;
+addEventListener('wheel',e=>{
+  if(state!=='deck')return;const t=performance.now();
+  if(t-lastWheel>220)gScrolled=false;   // пауза между колёсиками = новый жест
+  lastWheel=t;
+  const sl=slideEls[cur];   // длинный слайд: сначала крутим его содержимое, листаем слайды только на краю
+  if(sl&&sl.scrollHeight>sl.clientHeight+2){
+    const top=sl.scrollTop;
+    if(top!==lastTop){lastTop=top;gScrolled=true;}
+    if(gScrolled)return;
+    const atTop=top<=1,atBottom=top+sl.clientHeight>=sl.scrollHeight-2;
+    if((e.deltaY>0&&!atBottom)||(e.deltaY<0&&!atTop))return;
+  }
+  if(t-wheelT<800||Math.abs(e.deltaY)<8)return;wheelT=t;e.deltaY>0?next():prev();},{passive:true});
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+addEventListener('touchend',e=>{if(state!=='deck'||(e.target.closest&&e.target.closest('input,svg,.tblwrap')))return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}},{passive:true});
+
+/* магнитные кнопки + звук при наведении */
+const orbs=[...document.querySelectorAll('.orb')];
+orbs.forEach(o=>o.addEventListener('pointerenter',()=>A.hover()));
+addEventListener('pointermove',e=>{
+  S.tmx=(e.clientX/W-.5)*2;S.tmy=-(e.clientY/H-.5)*2;
+  for(const o of orbs){
+    const r=o.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,d=Math.hypot(dx,dy),lim=r.width*1.5;
+    if(d<lim){const k=(1-d/lim)*.35;o.style.translate=(dx*k)+'px '+(dy*k)+'px';}else o.style.translate='0 0';
+  }
+});
+sndBtn.onclick=()=>{const m=A.toggle();sndBtn.classList.toggle('muted',m);};
+
+/* ---------- старт ---------- */
+gate.addEventListener('pointerdown',()=>{
+  if(state!=='gate')return;
+  A.init();A.resume();gate.classList.add('gone');state='input';
+  setTimeout(()=>{title.classList.add('show');hint.classList.add('on');sndBtn.classList.add('on');},700);
+  inp.focus();
+});
+addEventListener('pointerdown',e=>{if(state==='input'&&e.target!==sndBtn&&!sndBtn.contains(e.target))inp.focus();});
+let lastLen=0;
+inp.addEventListener('input',()=>{
+  if(state!=='input')return;
+  const v=inp.value.replace(/\D/g,'');inp.value=v;
+  if(v.length>lastLen){A.digit(v.length-1);S.pulse=1;}
+  lastLen=v.length;
+  if(v.length>=ACCESS_CODE.length){v===ACCESS_CODE?unlock():wrong();}
+});
+function wrong(){
+  A.wrong();inp.value='';lastLen=0;S.shake=.9;tween(S,'shake',0,.8,E.out);
+}
+
+/* =====================================================================
+   ПОСЛЕДОВАТЕЛЬНОСТЬ: ПРАВИЛЬНЫЙ КОД → УСКОРЕНИЕ → ВЗРЫВ → ОТКРЫТИЕ
+   ===================================================================== */
+const M={r:0};let maskOn=false;
+const maxR=()=>Math.hypot(W,H)/2+180;
+function applyMask(){deck.style.setProperty('--r',M.r.toFixed(1));}
+let stageShake=0;
+async function unlock(){
+  state='unlock';inp.blur();
+  A.buildup(4.0);
+  title.classList.add('suck');hint.classList.add('off');
+  tween(S,'spin',11,3.8,E.in);tween(S,'shake',1,3.7,E.in);tween(S,'dist',19,3.7,E.io);
+  await wait(3700);
+  // сжатие в точку
+  tween(S,'dist',1600,.42,E.expIn);tween(S,'shake',0,.4,E.lin);tween(R,'core',1,.5,E.in);
+  await wait(430);
+  S.dist=1600;
+  await wait(380);   // мгновение тишины
+  // ВЗРЫВ
+  A.boom();explode();stageShake=1;S.flash=1;S.shake=0;R.core=0;
+  R.shockA=1;R.shock=0;tween(R,'shock',maxR(),2.7,E.out);tween(R,'shockA',0,2.7,E.in);
+  tween(S,'flash',0,1.7,E.out);
+  deck.style.visibility='visible';deck.classList.add('masked');maskOn=true;M.r=0;applyMask();
+  setSlide(0);cur=0;
+  await tween(M,'r',maxR(),2.8,E.out);
+  deck.classList.remove('masked');maskOn=false;
+  state='deck';hud.classList.add('on');tween(R,'dustA',1,4,E.lin);
+}
+
+/* =====================================================================
+   ФИНАЛ: ПЕРЕМОТКА → ЧЁРНАЯ ДЫРА → БЕЛАЯ ДЫРА
+   ===================================================================== */
+document.addEventListener('click',e=>{if(e.target.closest('#rewBtn'))rewind();});
+againBtn.onclick=()=>location.reload();
+async function rewind(){
+  if(state!=='deck'||cur!==SLIDES.length-1)return;
+  state='rewind';A.click();hud.classList.remove('on');
+  const HOPS=[780,670,570,490,415,350,300,250,210,180];
+  const hops=Array.from({length:SLIDES.length-1},(_,i)=>HOPS[Math.min(i,HOPS.length-1)]),total=hops.reduce((a,b)=>a+b,0);
+  deck.classList.add('rew','masked');maskOn=true;M.r=maxR();applyMask();rewOv.classList.add('on');
+  A.rewind(hops);
+  FX.attractOn=true;FX.attract=0;FX.spawnRate=0;FX.trail=.13;FX.drag=.7;
+  tween(FX,'spawnRate',mobile?900:2400,2.5,E.in);tween(FX,'attract',1.1,4.5,E.in);
+  tween(M,'r',0,total/1000+.9,E.io);
+  tween(S,'spin',9,.5,E.out);
+  tween(S,'dist',26,2.6,E.expOut,2.0);tween(S,'spin',1.8,2.6,E.io,2.4);
+  for(const h of hops){
+    deck.style.setProperty('--td',Math.max(.14,h/1000*.85)+'s');
+    setSlide(cur-1);await wait(h);
+  }
+  await wait(750);
+  deck.style.visibility='hidden';deck.classList.remove('rew','masked');maskOn=false;rewOv.classList.remove('on');
+  S.dist=26;
+  await wait(1100);   // чёрная дыра рождена, напряжение
+  // превращение
+  A.whiteBuild(1.9);
+  tween(S,'flash',1,1.9,E.in);tween(S,'shake',.7,1.9,E.in);tween(S,'spin',7,1.9,E.in);
+  await wait(1900);
+  S.white=1;S.dir=-1;S.spin=1.4;S.shake=0;S.dist=24;
+  FX.attractOn=false;FX.outflow=true;whiteBurst();A.whiteHole();
+  tween(S,'flash',0,2.6,E.out);tween(R,'ringA',1,3.5,E.out,.6);
+  await wait(1600);
+  finalEl.classList.add('show');
+  await wait(3500);
+  againBtn.classList.add('on');state='end';
+}
+FINAL_TEXT.split('').forEach((ch,i)=>{
+  const s=document.createElement('span');s.textContent=ch===' '?'\u00a0':ch;
+  s.style.animationDelay=(i*.09)+'s,'+(2.4+i*.12)+'s';finalEl.appendChild(s);
+});
+
+/* =====================================================================
+   ГЛАВНЫЙ ЦИКЛ
+   ===================================================================== */
+let last=performance.now(),slow=0;
+function frame(nowT){
+  const dt=Math.min(.05,(nowT-last)/1000);last=nowT;time+=dt;
+  stepTweens(dt);
+  S.pulse*=Math.exp(-4*dt);
+  const sp=(S.spin+S.pulse*3)*(state==='gate'?.6:1);
+  S.phase+=dt*sp*S.dir;S.outPh+=dt*S.white*1.3;S.sky+=dt*(.004+.02*S.white);
+  S.mx+=(S.tmx-S.mx)*Math.min(1,dt*2.5);S.my+=(S.tmy-S.my)*Math.min(1,dt*2.5);
+  if(hasGL){
+    gl.uniform2f(U.uRes,glc.width,glc.height);gl.uniform2f(U.uMouse,S.mx,S.my);
+    gl.uniform1f(U.uTime,time);gl.uniform1f(U.uDist,S.dist);gl.uniform1f(U.uPhase,S.phase);gl.uniform1f(U.uOutPh,S.outPh);
+    gl.uniform1f(U.uDir,S.dir);gl.uniform1f(U.uWhite,S.white);gl.uniform1f(U.uFlash,S.flash);gl.uniform1f(U.uShake,S.shake);gl.uniform1f(U.uSky,S.sky);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    // авто-качество
+    if(dt>.026)slow++;else slow=Math.max(0,slow-1);
+    if(slow>70&&Q>.5){Q*=.82;slow=0;resize();}
+  }else{
+    const sc=Math.min(1.4,26/S.dist);
+    fb.style.transform='scale('+sc+') rotate('+(S.phase*30)+'deg)';
+    fb.style.opacity=S.dist>800?0:1;
+    fb.style.filter=S.white>.5?'hue-rotate(-20deg) brightness(1.6) saturate(.5)':'none';
+    document.body.style.background=S.flash>0?'rgb('+Math.floor(S.flash*255)+','+Math.floor(S.flash*255)+','+Math.floor(S.flash*255)+')':'#000';
+  }
+  updateParticles(dt);drawParticles();drawOverlay(time,dt);
+  if(maskOn)applyMask();
+  if(stageShake>0.002){
+    stageShake*=Math.exp(-3.2*dt);
+    $('stage').style.transform='translate('+(rand(-1,1)*stageShake*16)+'px,'+(rand(-1,1)*stageShake*16)+'px)';
+  }else if(stageShake!==0){stageShake=0;$('stage').style.transform='';}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
